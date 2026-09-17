@@ -1,16 +1,18 @@
 <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width">
-        <title>My dream School Timetable</title>
-    </head>
-    <body>
-        
-        <h1>My dream School Timetable</h1>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>My dream School Timetable</title>
+</head>
+
+<body>
+
+    <h1>My dream School Timetable</h1>
 
     <p>
-     This webpage shows my dream school timetable, favourite subjects, school activities,
-    and useful learning links.
+        This webpage shows my dream school timetable, favourite subjects, school activities,
+        and useful learning links.
     </p>
 
     <h2>Useful Learning Links</h2>
@@ -40,7 +42,7 @@
             <dl>
                 <dt>Mathematics</dt>
                 <dd>A subject where we learn nujmbers, patterns, shapes, and problem-solving.</dd>
-               
+
                 <dt>Science</dt>
                 <dd>A subject where we learn about nature, experiments, space, animals, and inventions.</dd>
 
@@ -53,54 +55,54 @@
             <h2>My dream Timetable</h2>
 
             <table border="3">
-            <tr>
-                <th>Day</th>
-                <th>Period</th>
-                <th>Period</th>
-                <th>Period</th>
-                <th>Period</th>
-            </tr>
+                <tr>
+                    <th>Day</th>
+                    <th>Period</th>
+                    <th>Period</th>
+                    <th>Period</th>
+                    <th>Period</th>
+                </tr>
 
-            <tr>
-                <td>Monday</td>
-                <td>Mathematics</td>
-                <td>Science</td>
-                <td>Coding</td>
-                <td>Sports</td>
-            </tr>
+                <tr>
+                    <td>Monday</td>
+                    <td>Mathematics</td>
+                    <td>Science</td>
+                    <td>Coding</td>
+                    <td>Sports</td>
+                </tr>
 
-            <tr>
-                <td>Tuesday</td>
-                <td>English</td>
-                <td>Mathematics</td>
-                <td>Art</td>
-                <td>Music</td>
-            </tr>
+                <tr>
+                    <td>Tuesday</td>
+                    <td>English</td>
+                    <td>Mathematics</td>
+                    <td>Art</td>
+                    <td>Music</td>
+                </tr>
 
 
-            <tr>
-                <td>Wednesday</td>
-                <td>Science</td>
-                <td>Coding</td>
-                <td>Library</td>
-                <td>Sports</td>
-            </tr>
+                <tr>
+                    <td>Wednesday</td>
+                    <td>Science</td>
+                    <td>Coding</td>
+                    <td>Library</td>
+                    <td>Sports</td>
+                </tr>
 
-            <tr>
-                <td>Thursday</td>
-                <td>Social Studies</td>
-                <td>English</td>
-                <td>Mathematics</td>
-                <td>Art</td>
-            </tr>
+                <tr>
+                    <td>Thursday</td>
+                    <td>Social Studies</td>
+                    <td>English</td>
+                    <td>Mathematics</td>
+                    <td>Art</td>
+                </tr>
 
-            <tr>
-                <td>Friday</td>
-                <td>Coding</td>
-                <td>Science</td>
-                <td>Music</td>
-                <td>Games</td>
-            </tr>
+                <tr>
+                    <td>Friday</td>
+                    <td>Coding</td>
+                    <td>Science</td>
+                    <td>Music</td>
+                    <td>Games</td>
+                </tr>
             </table>
 
             <h2>My fovourite School Activities</h2>
@@ -135,7 +137,8 @@
                 <td>Library</td>
                 <td>I can read new stories and learn new words.</td>
             </tr>
-    
+
     </ol>
-    </body>
+</body>
+
 </html>
