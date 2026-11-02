@@ -2,40 +2,46 @@
 <html>
 
 <body>
+
     <h2>My Profile and Favourite Colours</h2>
+
     <p id="profile"></p>
     <p id="pet"></p>
     <p id="favcolor"></p>
     <p id="before"></p>
     <p id="after"></p>
+
     <script>
-        // Write your JavaScript code here
+
         var student = {
-         name: "Riya",
-         age: 12,
-         grade: 7,
-         hobby: "Drawing",
-         favsports: "Cricket"
+            name: "Riya",
+            age: 12,
+            grade: 7,
+            hobby: "Drawing",
+            favSport: "Cricket"
         };
-        var colors = ["white","black","Red","Green","blue"];
-        document.getElementbyId("profile").innerhtml = "Name: " + student.name +" | Favourite sport: " + student[
-            "favSport"];
-            document.getelementbyId("pet").innerHTML = "pet: " +Student.peT;
-            document.getelementbyId("favcolor").innerHTML = "My favourite color is " + colors[3];
 
-            colors.pop();
-            document.getelementbyId("after").innerHTML = "After pop: " + colors.join(" * ") + " ("+colors.length + ")";
+        var colors = ["white", "black", "red", "green", "blue"];
 
-            document.getemelmentbyId("random").innerHTML = "Random color: " + colors[Math.random() * colors.length];
+        document.getElementById("profile").innerHTML =
+            "Name: " + student.name + " | Favourite sport: " + student["favSport"];
 
-            Name: Riya |  favourite sport: Cricket
-            Pet: undefined
-            My favourite colour is green
-            before pop: white * Black * red * green * blue (5 colours)
-            After pop: white * black * red * green (4 colours)
+        document.getElementById("pet").innerHTML =
+            "Pet: " + student.pet;
 
-        
+        document.getElementById("favcolor").innerHTML =
+            "My favourite colour is " + colors[3];
+
+        document.getElementById("before").innerHTML =
+            "Before pop: " + colors.join(" * ") + " (" + colors.length + " colours)";
+
+        colors.pop();
+
+        document.getElementById("after").innerHTML =
+            "After pop: " + colors.join(" * ") + " (" + colors.length + " colours)";
+
     </script>
+
 </body>
 
 </html>
