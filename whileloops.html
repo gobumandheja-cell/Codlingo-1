@@ -1,0 +1,47 @@
+<html>
+    <head>
+        <title>My Game Profile</title>
+    </head>
+    <body>
+        
+        <h1>My game Profile</h1>
+        <button onclick="showProfile()">Show Profile</button>
+    
+
+        <div>Name: <span id="name"></span></div>
+        <div>Greeting: <span id="greeting"></span></div>
+        <div>Stars: <span id="stars"></span></div>
+
+
+        <script>
+            function showProfile(){
+
+                let name = "Alex";
+
+                let hour = new Date().getHours;
+                let greeting;
+                if (hour < 12) {
+                    greeting = "Good Morning!";
+                } else if (hour < 17) {
+                    greeting = "Good Afternoon!";
+                } else {
+                    greeting = "Good Evening!";
+                }
+
+
+                // While Loop — Stars
+                let stars = "";
+                let count = 0;
+                while (count < 5) {
+                    stars = stars + "* ";
+                    count = count + 1;
+                }
+
+                document.getElementById("name").innerHTML    =name;
+                document.getElementById("greeting").innerHTML  = greeting;
+                document.getElementById("stars").innerHTML    =stars;
+
+            }
+        </script>
+    </body>
+</html>
