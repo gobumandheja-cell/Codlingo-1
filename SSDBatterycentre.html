@@ -1,0 +1,2687 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SSD BATTERY CENTRE — Business Management</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #09090b;
+            --surface: #131316;
+            --card: #18181b;
+            --card-hi: #1f1f23;
+            --border: #27272a;
+            --text: #fafafa;
+            --muted: #a1a1aa;
+            --dim: #71717a;
+            --accent: #10b981;
+            --accent-hi: #34d399;
+            --danger: #ef4444;
+            --warn: #f59e0b;
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', system-ui, sans-serif;
+            font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3f3f46;
+        }
+
+        /* Card */
+        .card {
+            background: linear-gradient(180deg, var(--card) 0%, var(--surface) 100%);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+        }
+
+        .card-hover {
+            transition: border-color .15s, transform .15s;
+        }
+
+        .card-hover:hover {
+            border-color: #3f3f46;
+        }
+
+        /* Metric card */
+        .metric {
+            background: linear-gradient(180deg, var(--card) 0%, var(--surface) 100%);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.1rem 1.15rem;
+            transition: border-color .15s, transform .15s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric:hover {
+            border-color: #3f3f46;
+            transform: translateY(-1px);
+        }
+
+        .metric .metric-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            padding: .55rem .95rem;
+            font-size: .8125rem;
+            font-weight: 500;
+            border-radius: 10px;
+            transition: all .15s;
+            border: 1px solid transparent;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #022c22;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-hi);
+        }
+
+        .btn-secondary {
+            background: var(--card-hi);
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #2a2a2e;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, .12);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, .25);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: rgba(239, 68, 68, .2);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--muted);
+        }
+
+        .btn-ghost:hover:not(:disabled) {
+            background: var(--card-hi);
+            color: var(--text);
+        }
+
+        /* Inputs */
+        .inp {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: .6rem .8rem;
+            font-size: .875rem;
+            color: var(--text);
+            transition: border-color .15s, box-shadow .15s;
+        }
+
+        .inp::placeholder {
+            color: var(--dim);
+        }
+
+        .inp:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, .12);
+        }
+
+        .inp:disabled {
+            opacity: .6;
+        }
+
+        select.inp {
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right .65rem center;
+            background-size: 1rem;
+            padding-right: 2rem;
+        }
+
+        .label {
+            display: block;
+            font-size: .75rem;
+            font-weight: 500;
+            color: var(--muted);
+            margin-bottom: .35rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: .75rem 1rem;
+            font-size: .7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--dim);
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            padding: .85rem 1rem;
+            font-size: .8125rem;
+            border-bottom: 1px solid rgba(39, 39, 42, .5);
+            color: var(--text);
+            vertical-align: middle;
+        }
+
+        tbody tr {
+            transition: background .1s;
+        }
+
+        tbody tr:hover {
+            background: rgba(39, 39, 42, .25);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Sidebar */
+        .side-item {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            padding: .55rem .75rem;
+            font-size: .8125rem;
+            font-weight: 500;
+            color: var(--muted);
+            border-radius: 9px;
+            transition: all .15s;
+            position: relative;
+        }
+
+        .side-item i {
+            width: 18px;
+            text-align: center;
+            font-size: .95rem;
+        }
+
+        .side-item:hover {
+            background: var(--card-hi);
+            color: var(--text);
+        }
+
+        .side-item.active {
+            background: rgba(16, 185, 129, .1);
+            color: var(--accent-hi);
+        }
+
+        .side-item.active::before {
+            content: '';
+            position: absolute;
+            left: -11px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 16px;
+            border-radius: 2px;
+            background: var(--accent);
+        }
+
+        .side-label {
+            font-size: .65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--dim);
+            padding: .75rem .75rem .4rem;
+        }
+
+        /* Section animations */
+        .section {
+            animation: fadeIn .25s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 1.25rem;
+            right: 1.25rem;
+            z-index: 9999;
+            padding: .75rem 1rem;
+            border-radius: 10px;
+            font-size: .8125rem;
+            font-weight: 500;
+            background: var(--card);
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, .4);
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            animation: slideUp .25s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .toast.success {
+            border-color: rgba(16, 185, 129, .4);
+        }
+
+        .toast.success i {
+            color: var(--accent);
+        }
+
+        .toast.error {
+            border-color: rgba(239, 68, 68, .4);
+        }
+
+        .toast.error i {
+            color: var(--danger);
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 80;
+            background: rgba(0, 0, 0, .7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            animation: fadeIn .15s ease;
+        }
+
+        .modal {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalIn .2s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Charts container */
+        .chart-wrap {
+            position: relative;
+            height: 220px;
+        }
+
+        /* Print */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #print-area,
+            #print-area * {
+                visibility: visible;
+            }
+
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 24px;
+                background: #fff;
+                color: #000;
+            }
+
+            #print-area table th {
+                background: #f3f4f6;
+                color: #111;
+            }
+        }
+
+        /* Responsive tweaks */
+        @media (max-width:640px) {
+            .metric {
+                padding: .9rem;
+            }
+
+            .hide-sm {
+                display: none;
+            }
+
+            th,
+            td {
+                padding: .6rem .7rem;
+                font-size: .75rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ========== SIDEBAR ========== -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-60 z-40 bg-[var(--surface)] border-r border-[var(--border)]
+         flex flex-col -translate-x-full lg:translate-x-0 transition-transform duration-200">
+
+        <!-- Brand -->
+        <div class="px-4 py-5 border-b border-[var(--border)]">
+            <div class="flex items-center gap-2.5">
+                <div
+                    class="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-battery-full text-[#022c22] text-sm"></i>
+                </div>
+                <div class="leading-tight">
+                    <div class="text-[15px] font-bold tracking-tight">SSD BATTERY</div>
+                    <div class="text-[10px] text-[var(--dim)] tracking-widest font-medium">CENTRE · MANAGEMENT</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nav -->
+        <nav class="flex-1 overflow-y-auto px-3 py-3">
+            <div class="side-label">Main</div>
+            <a href="#" data-nav="dashboard" class="side-item"><i class="fa-solid fa-chart-line"></i>Dashboard</a>
+            <a href="#" data-nav="stock" class="side-item"><i class="fa-solid fa-boxes-stacked"></i>Stock Management</a>
+            <a href="#" data-nav="sales" class="side-item"><i class="fa-solid fa-receipt"></i>Daily Sales</a>
+            <a href="#" data-nav="profitloss" class="side-item"><i class="fa-solid fa-chart-pie"></i>Profit & Loss</a>
+
+            <div class="side-label">Accounts</div>
+            <a href="#" data-nav="udhaar" class="side-item"><i class="fa-solid fa-user-tag"></i>Customer Udhaar</a>
+            <a href="#" data-nav="suppliers" class="side-item"><i class="fa-solid fa-handshake"></i>Supplier Khata</a>
+            <a href="#" data-nav="workers" class="side-item"><i class="fa-solid fa-user-gear"></i>Worker Payments</a>
+
+            <div class="side-label">Operations</div>
+            <a href="#" data-nav="purchases" class="side-item"><i class="fa-solid fa-truck-fast"></i>Purchase
+                Records</a>
+            <a href="#" data-nav="expenses" class="side-item"><i class="fa-solid fa-wallet"></i>Expenses</a>
+            <a href="#" data-nav="claims" class="side-item"><i class="fa-solid fa-shield-halved"></i>Battery Claims</a>
+
+            <div class="side-label">System</div>
+            <a href="#" data-nav="reports" class="side-item"><i class="fa-solid fa-file-lines"></i>Reports</a>
+            <a href="#" data-nav="settings" class="side-item"><i class="fa-solid fa-gear"></i>Settings</a>
+        </nav>
+
+        <div
+            class="p-3 border-t border-[var(--border)] text-[11px] text-[var(--dim)] flex items-center justify-between">
+            <span>v2.0 · Premium</span>
+            <span id="conn-status" class="flex items-center gap-1.5"><span
+                    class="w-1.5 h-1.5 rounded-full bg-[var(--warn)]" id="conn-dot"></span><span
+                    id="conn-text">Connecting…</span></span>
+        </div>
+    </aside>
+
+    <!-- Mobile overlay -->
+    <div id="overlay" class="fixed inset-0 bg-black/60 z-30 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+    <!-- ========== MAIN ========== -->
+    <div class="lg:ml-60 min-h-screen flex flex-col">
+
+        <!-- Topbar -->
+        <header
+            class="sticky top-0 z-20 bg-[rgba(9,9,11,.85)] backdrop-blur border-b border-[var(--border)] px-4 md:px-6 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <button class="lg:hidden btn btn-ghost p-2" onclick="toggleSidebar()"><i
+                        class="fa-solid fa-bars text-lg"></i></button>
+                <div>
+                    <h1 id="page-title" class="text-base font-semibold tracking-tight">Dashboard</h1>
+                    <p id="page-sub" class="text-[11px] text-[var(--dim)] hidden sm:block">Overview of your business</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button class="btn btn-ghost p-2 relative" title="Low Stock Alerts" onclick="go('stock')">
+                    <i class="fa-regular fa-bell"></i>
+                    <span id="bell-badge"
+                        class="hidden absolute -top-0.5 -right-0.5 bg-[var(--danger)] text-white text-[9px] rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center font-bold"></span>
+                </button>
+                <div
+                    class="hidden sm:flex items-center gap-2 text-[11px] text-[var(--muted)] px-2 py-1 rounded-lg bg-[var(--card)] border border-[var(--border)]">
+                    <i class="fa-regular fa-calendar text-[10px]"></i>
+                    <span id="topbar-date"></span>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 p-4 md:p-6 max-w-[1500px] w-full mx-auto">
+
+            <!-- ==================== DASHBOARD ==================== -->
+            <section id="s-dashboard" class="section">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                    <div class="metric">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="metric-icon bg-emerald-500/10 text-emerald-400"><i
+                                    class="fa-solid fa-sack-dollar"></i></div>
+                        </div>
+                        <div class="text-[11px] text-[var(--dim)] font-medium uppercase tracking-wider">Total Sales
+                        </div>
+                        <div id="d-total-sales" class="text-lg md:text-xl font-bold mt-0.5">PKR 0</div>
+                    </div>
+                    <div class="metric">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="metric-icon bg-teal-500/10 text-teal-400"><i
+                                    class="fa-solid fa-calendar-day"></i></div>
+                        </div>
+                        <div class="text-[11px] text-[var(--dim)] font-medium uppercase tracking-wider">Today's Sales
+                        </div>
+                        <div id="d-today-sales" class="text-lg md:text-xl font-bold mt-0.5">PKR 0</div>
+                    </div>
+                    <div class="metric">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="metric-icon bg-sky-500/10 text-sky-400"><i class="fa-solid fa-calendar"></i>
+                            </div>
+                        </div>
+                        <div class="text-[11px] text-[var(--dim)] font-medium uppercase tracking-wider">Monthly Sales
+                        </div>
+                        <div id="d-monthly-sales" class="text-lg md:text-xl font-bold mt-0.5">PKR 0</div>
+                    </div>
+                    <div class="metric">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="metric-icon bg-amber-500/10 text-amber-400"><i
+                                    class="fa-solid fa-arrow-trend-up"></i></div>
+                        </div>
+                        <div class="text-[11px] text-[var(--dim)] font-medium uppercase tracking-wider">Today's Profit
+                        </div>
+                        <div id="d-today-profit" class="text-lg md:text-xl font-bold mt-0.5">PKR 0</div>
+                    </div>
+                    <div class="metric">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="metric-icon bg-violet-500/10 text-violet-400"><i
+                                    class="fa-solid fa-chart-line"></i></div>
+                        </div>
+                        <div class="text-[11px] text-[var(--dim)] font-medium uppercase tracking-wider">Monthly Profit
+                        </div>
+                        <div id="d-monthly-profit" class="text-lg md:text-xl font-bold mt-0.5">PKR 0</div>
+                    </div>
+                    <div class="metric">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="metric-icon bg-rose-500/10 text-rose-400"><i class="fa-solid fa-wallet"></i>
+                            </div>
+                        </div>
+                        <div class="text-[11px] text-[var(--dim)] font-medium uppercase tracking-wider">Total Expenses
+                        </div>
+                        <div id="d-expenses" class="text-lg md:text-xl font-bold mt-0.5">PKR 0</div>
+                    </div>
+                    <div class="metric">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="metric-icon bg-blue-500/10 text-blue-400"><i
+                                    class="fa-solid fa-boxes-stacked"></i></div>
+                        </div>
+                        <div class="text-[11px] text-[var(--dim)] font-medium uppercase tracking-wider">Stock Items
+                        </div>
+                        <div id="d-stock" class="text-lg md:text-xl font-bold mt-0.5">0</div>
+                    </div>
+                    <div class="metric">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="metric-icon bg-orange-500/10 text-orange-400"><i
+                                    class="fa-solid fa-user-tag"></i></div>
+                        </div>
+                        <div class="text-[11px] text-[var(--dim)] font-medium uppercase tracking-wider">Customer Udhaar
+                        </div>
+                        <div id="d-udhaar" class="text-lg md:text-xl font-bold mt-0.5">PKR 0</div>
+                    </div>
+                    <div class="metric">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="metric-icon bg-pink-500/10 text-pink-400"><i class="fa-solid fa-handshake"></i>
+                            </div>
+                        </div>
+                        <div class="text-[11px] text-[var(--dim)] font-medium uppercase tracking-wider">Supplier Balance
+                        </div>
+                        <div id="d-supplier-bal" class="text-lg md:text-xl font-bold mt-0.5">PKR 0</div>
+                    </div>
+                    <div class="metric">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="metric-icon bg-red-500/10 text-red-400"><i
+                                    class="fa-solid fa-triangle-exclamation"></i></div>
+                        </div>
+                        <div class="text-[11px] text-[var(--dim)] font-medium uppercase tracking-wider">Low Stock</div>
+                        <div id="d-low" class="text-lg md:text-xl font-bold mt-0.5">0</div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+                    <div class="card p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-semibold">Daily Sales <span class="text-[var(--dim)] font-normal">—
+                                    last 7 days</span></h3>
+                        </div>
+                        <div class="chart-wrap"><canvas id="chart-daily"></canvas></div>
+                    </div>
+                    <div class="card p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-semibold">Monthly Sales <span
+                                    class="text-[var(--dim)] font-normal">— last 6 months</span></h3>
+                        </div>
+                        <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
+                    </div>
+                    <div class="card p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-semibold">Monthly Profit <span
+                                    class="text-[var(--dim)] font-normal">— last 6 months</span></h3>
+                        </div>
+                        <div class="chart-wrap"><canvas id="chart-profit"></canvas></div>
+                    </div>
+                    <div class="card p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-semibold">Expenses <span class="text-[var(--dim)] font-normal">— by
+                                    category (30 days)</span></h3>
+                        </div>
+                        <div class="chart-wrap"><canvas id="chart-expenses"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Recent sales -->
+                <div class="card mt-4 overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--border)]">
+                        <h3 class="text-sm font-semibold">Recent Sales</h3>
+                        <button class="text-[11px] text-[var(--accent-hi)] hover:underline" onclick="go('sales')">View
+                            all →</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th class="hide-sm">Product</th>
+                                    <th>Total</th>
+                                    <th class="hide-sm">Received</th>
+                                    <th>Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="d-recent-sales"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== STOCK ==================== -->
+            <section id="s-stock" class="section hidden">
+                <div class="flex flex-col md:flex-row md:items-center gap-3 mb-4">
+                    <div class="flex-1 flex flex-wrap gap-2">
+                        <input id="stock-search" class="inp max-w-xs" placeholder="Search name, brand, model…"
+                            oninput="renderStock()">
+                        <select id="stock-filter" class="inp max-w-[160px]" onchange="renderStock()">
+                            <option value="">All Categories</option>
+                            <option>Battery</option>
+                            <option>Solar Panel</option>
+                            <option>Fan</option>
+                            <option>Inverter</option>
+                            <option>Charger</option>
+                            <option>Accessory</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="openProductModal()"><i class="fa-solid fa-plus"></i> Add
+                        Product</button>
+                </div>
+                <div class="card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="hide-sm">Category</th>
+                                    <th>Purchase</th>
+                                    <th>Selling</th>
+                                    <th>Qty</th>
+                                    <th class="hide-sm">Stock Value</th>
+                                    <th class="hide-sm">Supplier</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stock-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SALES ==================== -->
+            <section id="s-sales" class="section hidden">
+                <div class="flex flex-col md:flex-row md:items-center gap-3 mb-4">
+                    <input id="sales-search" class="inp max-w-xs" placeholder="Search customer or product…"
+                        oninput="renderSales()">
+                    <div class="flex-1"></div>
+                    <button class="btn btn-primary" onclick="openSaleModal()"><i class="fa-solid fa-plus"></i> New
+                        Sale</button>
+                </div>
+                <div class="card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th class="hide-sm">Product</th>
+                                    <th>Qty</th>
+                                    <th>Total</th>
+                                    <th class="hide-sm">Received</th>
+                                    <th>Profit</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== PROFIT & LOSS ==================== -->
+            <section id="s-profitloss" class="section hidden">
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button class="btn btn-secondary" onclick="setPLPeriod('today')">Today</button>
+                    <button class="btn btn-secondary" onclick="setPLPeriod('week')">This Week</button>
+                    <button class="btn btn-secondary" onclick="setPLPeriod('month')">This Month</button>
+                    <button class="btn btn-secondary" onclick="setPLPeriod('all')">All Time</button>
+                </div>
+                <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+                    <div class="metric">
+                        <div class="text-[11px] text-[var(--dim)] uppercase font-medium">Revenue</div>
+                        <div id="pl-revenue" class="text-xl font-bold mt-1">PKR 0</div>
+                    </div>
+                    <div class="metric">
+                        <div class="text-[11px] text-[var(--dim)] uppercase font-medium">COGS</div>
+                        <div id="pl-cogs" class="text-xl font-bold mt-1">PKR 0</div>
+                    </div>
+                    <div class="metric">
+                        <div class="text-[11px] text-[var(--dim)] uppercase font-medium">Gross Profit</div>
+                        <div id="pl-gross" class="text-xl font-bold mt-1 text-emerald-400">PKR 0</div>
+                    </div>
+                    <div class="metric">
+                        <div class="text-[11px] text-[var(--dim)] uppercase font-medium">Expenses</div>
+                        <div id="pl-expenses" class="text-xl font-bold mt-1 text-rose-400">PKR 0</div>
+                    </div>
+                    <div class="metric">
+                        <div class="text-[11px] text-[var(--dim)] uppercase font-medium">Net Profit</div>
+                        <div id="pl-net" class="text-xl font-bold mt-1 text-emerald-400">PKR 0</div>
+                    </div>
+                </div>
+                <div class="card overflow-hidden">
+                    <div class="px-4 py-3 border-b border-[var(--border)] text-sm font-semibold">Sales Detail</div>
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Product</th>
+                                    <th>Qty</th>
+                                    <th>Revenue</th>
+                                    <th>COGS</th>
+                                    <th>Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pl-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== CUSTOMER UDHAAR ==================== -->
+            <section id="s-udhaar" class="section hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <input id="udhaar-search" class="inp max-w-xs" placeholder="Search customers…"
+                        oninput="renderUdhaar()">
+                    <button class="btn btn-primary" onclick="openCustomerModal()"><i class="fa-solid fa-plus"></i> Add
+                        Customer</button>
+                </div>
+                <div class="card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th class="hide-sm">Phone</th>
+                                    <th>Total Billed</th>
+                                    <th class="hide-sm">Received</th>
+                                    <th>Udhaar</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="udhaar-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== BATTERY CLAIMS ==================== -->
+            <section id="s-claims" class="section hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <input id="claims-search" class="inp max-w-xs" placeholder="Search claims…"
+                        oninput="renderClaims()">
+                    <button class="btn btn-primary" onclick="openClaimModal()"><i class="fa-solid fa-plus"></i> New
+                        Claim</button>
+                </div>
+                <div class="card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Battery</th>
+                                    <th class="hide-sm">Serial</th>
+                                    <th class="hide-sm">Claim Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="claims-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== SUPPLIER KHATA ==================== -->
+            <section id="s-suppliers" class="section hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <input id="supp-search" class="inp max-w-xs" placeholder="Search suppliers…"
+                        oninput="renderSuppliers()">
+                    <button class="btn btn-primary" onclick="openSupplierModal()"><i class="fa-solid fa-plus"></i> Add
+                        Supplier</button>
+                </div>
+                <div class="card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Supplier</th>
+                                    <th class="hide-sm">Phone</th>
+                                    <th>Total Purchase</th>
+                                    <th class="hide-sm">Paid</th>
+                                    <th>Balance</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="suppliers-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== WORKER PAYMENTS ==================== -->
+            <section id="s-workers" class="section hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <input id="workers-search" class="inp max-w-xs" placeholder="Search workers…"
+                        oninput="renderWorkers()">
+                    <button class="btn btn-primary" onclick="openWorkerModal()"><i class="fa-solid fa-plus"></i> Add
+                        Worker</button>
+                </div>
+                <div class="card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Worker</th>
+                                    <th class="hide-sm">Phone</th>
+                                    <th>Monthly Salary</th>
+                                    <th class="hide-sm">Paid (Total)</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="workers-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== EXPENSES ==================== -->
+            <section id="s-expenses" class="section hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex gap-2">
+                        <select id="exp-filter" class="inp max-w-[180px]" onchange="renderExpenses()">
+                            <option value="">All Categories</option>
+                            <option>Shop Rent</option>
+                            <option>Electricity</option>
+                            <option>Transport</option>
+                            <option>Maintenance</option>
+                            <option>Food</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="openExpenseModal()"><i class="fa-solid fa-plus"></i> Add
+                        Expense</button>
+                </div>
+                <div class="card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th class="hide-sm">Description</th>
+                                    <th>Amount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenses-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== PURCHASE RECORDS ==================== -->
+            <section id="s-purchases" class="section hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <input id="pur-search" class="inp max-w-xs" placeholder="Search purchases…"
+                        oninput="renderPurchases()">
+                    <button class="btn btn-primary" onclick="openPurchaseModal()"><i class="fa-solid fa-plus"></i> New
+                        Purchase</button>
+                </div>
+                <div class="card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Supplier</th>
+                                    <th>Product</th>
+                                    <th>Qty</th>
+                                    <th>Total Cost</th>
+                                    <th class="hide-sm">Paid</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="purchases-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== REPORTS ==================== -->
+            <section id="s-reports" class="section hidden">
+                <div class="card p-4 mb-4">
+                    <div class="flex flex-wrap items-end gap-3">
+                        <div><label class="label">From</label><input type="date" id="rep-from" class="inp"></div>
+                        <div><label class="label">To</label><input type="date" id="rep-to" class="inp"></div>
+                        <div class="flex gap-2">
+                            <button class="btn btn-secondary" onclick="setReportRange('today')">Today</button>
+                            <button class="btn btn-secondary" onclick="setReportRange('week')">This Week</button>
+                            <button class="btn btn-secondary" onclick="setReportRange('month')">This Month</button>
+                            <button class="btn btn-secondary" onclick="setReportRange('all')">All Time</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    <button class="card card-hover p-4 text-left" onclick="previewReport('sales')"><i
+                            class="fa-solid fa-receipt text-emerald-400 text-xl mb-2"></i>
+                        <div class="text-sm font-semibold">Sales Report</div>
+                        <div class="text-[11px] text-[var(--dim)]">Revenue & profit</div>
+                    </button>
+                    <button class="card card-hover p-4 text-left" onclick="previewReport('purchases')"><i
+                            class="fa-solid fa-truck-fast text-sky-400 text-xl mb-2"></i>
+                        <div class="text-sm font-semibold">Purchase Report</div>
+                        <div class="text-[11px] text-[var(--dim)]">Supplier purchases</div>
+                    </button>
+                    <button class="card card-hover p-4 text-left" onclick="previewReport('stock')"><i
+                            class="fa-solid fa-boxes-stacked text-blue-400 text-xl mb-2"></i>
+                        <div class="text-sm font-semibold">Stock Report</div>
+                        <div class="text-[11px] text-[var(--dim)]">Inventory valuation</div>
+                    </button>
+                    <button class="card card-hover p-4 text-left" onclick="previewReport('profitloss')"><i
+                            class="fa-solid fa-chart-line text-amber-400 text-xl mb-2"></i>
+                        <div class="text-sm font-semibold">Profit & Loss</div>
+                        <div class="text-[11px] text-[var(--dim)]">Income statement</div>
+                    </button>
+                    <button class="card card-hover p-4 text-left" onclick="previewReport('expenses')"><i
+                            class="fa-solid fa-wallet text-rose-400 text-xl mb-2"></i>
+                        <div class="text-sm font-semibold">Expense Report</div>
+                        <div class="text-[11px] text-[var(--dim)]">By category</div>
+                    </button>
+                    <button class="card card-hover p-4 text-left" onclick="previewReport('customers')"><i
+                            class="fa-solid fa-user-tag text-orange-400 text-xl mb-2"></i>
+                        <div class="text-sm font-semibold">Customer Accounts</div>
+                        <div class="text-[11px] text-[var(--dim)]">Udhaar ledger</div>
+                    </button>
+                    <button class="card card-hover p-4 text-left" onclick="previewReport('suppliers')"><i
+                            class="fa-solid fa-handshake text-pink-400 text-xl mb-2"></i>
+                        <div class="text-sm font-semibold">Supplier Accounts</div>
+                        <div class="text-[11px] text-[var(--dim)]">Khata ledger</div>
+                    </button>
+                    <button class="card card-hover p-4 text-left" onclick="previewReport('workers')"><i
+                            class="fa-solid fa-user-gear text-violet-400 text-xl mb-2"></i>
+                        <div class="text-sm font-semibold">Worker Payments</div>
+                        <div class="text-[11px] text-[var(--dim)]">Salary & advances</div>
+                    </button>
+                    <button class="card card-hover p-4 text-left" onclick="previewReport('claims')"><i
+                            class="fa-solid fa-shield-halved text-teal-400 text-xl mb-2"></i>
+                        <div class="text-sm font-semibold">Battery Claims</div>
+                        <div class="text-[11px] text-[var(--dim)]">Warranty status</div>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ==================== SETTINGS ==================== -->
+            <section id="s-settings" class="section hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="card p-5">
+                        <h3 class="text-sm font-semibold mb-4"><i
+                                class="fa-solid fa-store mr-2 text-emerald-400"></i>Shop Information</h3>
+                        <form onsubmit="saveSettings(event)" class="space-y-3">
+                            <div><label class="label">Shop Name</label><input id="set-name" class="inp" required></div>
+                            <div><label class="label">Phone</label><input id="set-phone" class="inp"></div>
+                            <div><label class="label">Address</label><input id="set-address" class="inp"></div>
+                            <div><label class="label">Invoice Footer</label><input id="set-footer" class="inp"></div>
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save
+                                Settings</button>
+                        </form>
+                    </div>
+                    <div class="card p-5">
+                        <h3 class="text-sm font-semibold mb-4"><i
+                                class="fa-solid fa-database mr-2 text-sky-400"></i>Backup & Restore</h3>
+                        <p class="text-xs text-[var(--muted)] mb-4">Download a complete JSON backup of all your data, or
+                            restore from a previous backup file. Restoring will replace all current data.</p>
+                        <div class="flex flex-col gap-2">
+                            <button class="btn btn-secondary" onclick="backupData()"><i
+                                    class="fa-solid fa-download"></i> Download Backup (JSON)</button>
+                            <label class="btn btn-secondary cursor-pointer"><i class="fa-solid fa-upload"></i> Restore
+                                from Backup<input type="file" accept=".json" class="hidden"
+                                    onchange="restoreData(this)"></label>
+                        </div>
+                        <hr class="my-4 border-[var(--border)]">
+                        <h3 class="text-sm font-semibold mb-2"><i
+                                class="fa-solid fa-circle-info mr-2 text-amber-400"></i>Connection</h3>
+                        <p class="text-xs text-[var(--muted)]">Database: Supabase PostgreSQL</p>
+                        <p class="text-xs text-[var(--muted)] mt-1">Mode: Direct anon key + RLS (no login, per spec)</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal + Print container -->
+    <div id="modal-root"></div>
+    <div id="print-area" style="display:none"></div>
+    <div id="toast-root"></div>
+
+    <!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+    <script>
+        // ============================================================
+        // ⚠️  PASTE YOUR SUPABASE CREDENTIALS HERE
+        // ============================================================
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';       // e.g. https://abcxyz.supabase.co
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';  // anon public key (NOT service_role)
+
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ============================================================
+        // TABLES
+        // ============================================================
+        const TABLES = ['settings', 'products', 'customers', 'sales', 'customer_payments',
+            'suppliers', 'purchases', 'supplier_payments', 'workers',
+            'worker_payments', 'expenses', 'claims'];
+
+        // ============================================================
+        // CACHE
+        // ============================================================
+        const cache = {
+            settings: {}, products: [], customers: [], sales: [], customer_payments: [],
+            suppliers: [], purchases: [], supplier_payments: [], workers: [],
+            worker_payments: [], expenses: [], claims: []
+        };
+
+        let charts = {};
+        let currentPLPeriod = 'month';
+        let currentReportRange = { from: null, to: null };
+
+        // ============================================================
+        // HELPERS
+        // ============================================================
+        const $ = s => document.querySelector(s);
+        const $$ = s => document.querySelectorAll(s);
+        const fmt = n => 'PKR ' + Number(n || 0).toLocaleString('en-PK', { maximumFractionDigits: 0 });
+        const fmtNum = n => Number(n || 0).toLocaleString('en-PK', { maximumFractionDigits: 2 });
+        const todayISO = () => new Date().toISOString().split('T')[0];
+        const monthStartISO = () => { const d = new Date(); d.setDate(1); return d.toISOString().split('T')[0]; };
+        const weekStartISO = () => { const d = new Date(); const day = d.getDay() || 7; d.setDate(d.getDate() - (day - 1)); return d.toISOString().split('T')[0]; };
+        const parseDate = s => s ? new Date(s) : null;
+        const inRange = (dateStr, from, to) => {
+            if (!dateStr) return false;
+            const d = dateStr.split('T')[0];
+            if (from && d < from) return false;
+            if (to && d > to) return false;
+            return true;
+        };
+
+        function toast(msg, type = 'success') {
+            const el = document.createElement('div');
+            el.className = `toast ${type}`;
+            el.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i><span>${msg}</span>`;
+            $('#toast-root').appendChild(el);
+            setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(6px)'; el.style.transition = 'all .3s'; setTimeout(() => el.remove(), 300); }, 3000);
+        }
+
+        function setConnStatus(ok) {
+            const dot = $('#conn-dot'), txt = $('#conn-text');
+            if (ok) { dot.style.background = 'var(--accent)'; txt.textContent = 'Connected'; }
+            else { dot.style.background = 'var(--danger)'; txt.textContent = 'Error'; }
+        }
+
+        function toggleSidebar() {
+            $('#sidebar').classList.toggle('-translate-x-full');
+            $('#overlay').classList.toggle('hidden');
+        }
+
+        // ============================================================
+        // NAVIGATION
+        // ============================================================
+        const SECTION_TITLES = {
+            dashboard: ['Dashboard', 'Business overview'],
+            stock: ['Stock Management', 'Manage inventory'],
+            sales: ['Daily Sales', 'Record & track sales'],
+            profitloss: ['Profit & Loss', 'Income statement'],
+            udhaar: ['Customer Udhaar', 'Customer ledger'],
+            suppliers: ['Supplier Khata', 'Supplier accounts'],
+            workers: ['Worker Payments', 'Salaries & advances'],
+            purchases: ['Purchase Records', 'Supplier purchases'],
+            expenses: ['Expenses', 'Business expenses'],
+            claims: ['Battery Claims', 'Warranty & claims'],
+            reports: ['Reports', 'Analytics & exports'],
+            settings: ['Settings', 'Configuration']
+        };
+
+        function go(name) {
+            $$('.section').forEach(s => s.classList.add('hidden'));
+            const target = document.getElementById('s-' + name);
+            if (!target) return;
+            target.classList.remove('hidden');
+            target.classList.remove('section'); void target.offsetWidth; target.classList.add('section');
+
+            $$('.side-item').forEach(a => a.classList.remove('active'));
+            const activeLink = document.querySelector(`[data-nav="${name}"]`);
+            if (activeLink) activeLink.classList.add('active');
+
+            const [t, sub] = SECTION_TITLES[name] || ['', ''];
+            $('#page-title').textContent = t;
+            $('#page-sub').textContent = sub;
+
+            if (window.innerWidth < 1024) toggleSidebar();
+
+            // Lazy render
+            const renderers = {
+                dashboard: renderDashboard,
+                stock: renderStock,
+                sales: renderSales,
+                profitloss: renderProfitLoss,
+                udhaar: renderUdhaar,
+                suppliers: renderSuppliers,
+                workers: renderWorkers,
+                purchases: renderPurchases,
+                expenses: renderExpenses,
+                claims: renderClaims,
+                reports: () => { if (!currentReportRange.from) setReportRange('month'); },
+                settings: renderSettings
+            };
+            renderers[name]?.();
+        }
+
+        // ============================================================
+        // LOAD DATA
+        // ============================================================
+        async function loadAll() {
+            try {
+                const results = await Promise.all(TABLES.map(t =>
+                    db.from(t).select('*').then(r => r.data || [])
+                ));
+                TABLES.forEach((t, i) => {
+                    if (t === 'settings') cache.settings = results[i][0] || {};
+                    else cache[t] = results[i];
+                });
+                setConnStatus(true);
+            } catch (e) {
+                console.error(e);
+                setConnStatus(false);
+                toast('Could not load data. Check Supabase config.', 'error');
+            }
+        }
+
+        // ============================================================
+        // DASHBOARD
+        // ============================================================
+        function renderDashboard() {
+            const today = todayISO();
+            const monthStart = monthStartISO();
+
+            const totalSales = cache.sales.reduce((s, x) => s + (x.total_amount || 0), 0);
+            const todaySales = cache.sales.filter(s => s.sale_date?.startsWith(today)).reduce((s, x) => s + (x.total_amount || 0), 0);
+            const monthlySales = cache.sales.filter(s => s.sale_date?.split('T')[0] >= monthStart).reduce((s, x) => s + (x.total_amount || 0), 0);
+            const todayProfit = cache.sales.filter(s => s.sale_date?.startsWith(today)).reduce((s, x) => s + (x.profit || 0), 0);
+            const monthlyProfit = cache.sales.filter(s => s.sale_date?.split('T')[0] >= monthStart).reduce((s, x) => s + (x.profit || 0), 0);
+            const totalExpenses = cache.expenses.reduce((s, x) => s + (x.amount || 0), 0);
+            const stockItems = cache.products.reduce((s, p) => s + (p.quantity || 0), 0);
+            const udhaar = cache.customers.reduce((sum, c) => sum + customerBalance(c.id).remaining, 0);
+            const supplierBal = cache.suppliers.reduce((sum, s) => sum + supplierBalance(s.id).remaining, 0);
+            const lowStock = cache.products.filter(p => (p.quantity || 0) <= (p.low_stock_threshold || 5));
+
+            $('#d-total-sales').textContent = fmt(totalSales);
+            $('#d-today-sales').textContent = fmt(todaySales);
+            $('#d-monthly-sales').textContent = fmt(monthlySales);
+            $('#d-today-profit').textContent = fmt(todayProfit);
+            $('#d-monthly-profit').textContent = fmt(monthlyProfit);
+            $('#d-expenses').textContent = fmt(totalExpenses);
+            $('#d-stock').textContent = stockItems;
+            $('#d-udhaar').textContent = fmt(udhaar);
+            $('#d-supplier-bal').textContent = fmt(supplierBal);
+            $('#d-low').textContent = lowStock.length;
+
+            // Bell
+            const bell = $('#bell-badge');
+            if (lowStock.length) { bell.textContent = lowStock.length; bell.classList.remove('hidden'); }
+            else bell.classList.add('hidden');
+
+            // Recent sales
+            const recent = [...cache.sales].sort((a, b) => new Date(b.sale_date) - new Date(a.sale_date)).slice(0, 6);
+            const tbody = $('#d-recent-sales');
+            if (!recent.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-[var(--dim)] py-6">No sales yet</td></tr>`;
+            } else {
+                tbody.innerHTML = recent.map(s => `
+      <tr>
+        <td class="text-[var(--muted)]">${new Date(s.sale_date).toLocaleDateString('en-PK')}</td>
+        <td class="font-medium">${s.customer_name}</td>
+        <td class="hide-sm text-[var(--muted)]">${s.product_name || '—'}</td>
+        <td>${fmt(s.total_amount)}</td>
+        <td class="hide-sm">${fmt(s.amount_received)}</td>
+        <td class="text-emerald-400">${fmt(s.profit)}</td>
+      </tr>`).join('');
+            }
+
+            updateCharts();
+        }
+
+        // ============================================================
+        // CHARTS
+        // ============================================================
+        function initCharts() {
+            Chart.defaults.color = '#a1a1aa';
+            Chart.defaults.font.family = 'Inter';
+            Chart.defaults.font.size = 11;
+            Chart.defaults.plugins.legend.labels.boxWidth = 10;
+
+            const grid = { color: 'rgba(39,39,42,.6)' };
+            const ticks = { color: '#71717a' };
+
+            charts.daily = new Chart($('#chart-daily'), {
+                type: 'bar',
+                data: { labels: [], datasets: [{ label: 'Sales', data: [], backgroundColor: '#10b981', borderRadius: 6, borderSkipped: false }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid, ticks }, x: { grid: { display: false }, ticks } }
+                }
+            });
+
+            charts.monthly = new Chart($('#chart-monthly'), {
+                type: 'bar',
+                data: { labels: [], datasets: [{ label: 'Sales', data: [], backgroundColor: '#3b82f6', borderRadius: 6, borderSkipped: false }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid, ticks }, x: { grid: { display: false }, ticks } }
+                }
+            });
+
+            charts.profit = new Chart($('#chart-profit'), {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: 'Profit', data: [], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.15)', fill: true, tension: .35, pointRadius: 4, pointBackgroundColor: '#f59e0b' }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid, ticks }, x: { grid: { display: false }, ticks } }
+                }
+            });
+
+            charts.expenses = new Chart($('#chart-expenses'), {
+                type: 'doughnut',
+                data: { labels: [], datasets: [{ data: [], backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'], borderWidth: 0 }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '65%',
+                    plugins: { legend: { position: 'right', labels: { color: '#a1a1aa', padding: 12 } } }
+                }
+            });
+        }
+
+        function updateCharts() {
+            // Daily (last 7 days)
+            const dl = [], dd = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(); d.setDate(d.getDate() - i);
+                const iso = d.toISOString().split('T')[0];
+                dl.push(d.toLocaleDateString('en-PK', { weekday: 'short' }));
+                dd.push(cache.sales.filter(s => s.sale_date?.startsWith(iso)).reduce((sum, s) => sum + (s.total_amount || 0), 0));
+            }
+            charts.daily.data.labels = dl; charts.daily.data.datasets[0].data = dd; charts.daily.update('none');
+
+            // Monthly (last 6 months)
+            const ml = [], md = [], mp = [];
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(); d.setMonth(d.getMonth() - i);
+                const m = d.getMonth(), y = d.getFullYear();
+                ml.push(d.toLocaleDateString('en-PK', { month: 'short', year: '2-digit' }));
+                const salesInMonth = cache.sales.filter(s => {
+                    const sd = new Date(s.sale_date); return sd.getMonth() === m && sd.getFullYear() === y;
+                });
+                md.push(salesInMonth.reduce((sum, s) => sum + (s.total_amount || 0), 0));
+                mp.push(salesInMonth.reduce((sum, s) => sum + (s.profit || 0), 0));
+            }
+            charts.monthly.data.labels = ml; charts.monthly.data.datasets[0].data = md; charts.monthly.update('none');
+            charts.profit.data.labels = ml; charts.profit.data.datasets[0].data = mp; charts.profit.update('none');
+
+            // Expenses by category (30 days)
+            const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+            const cats = {};
+            cache.expenses.filter(e => new Date(e.expense_date) >= cutoff).forEach(e => {
+                cats[e.category] = (cats[e.category] || 0) + (e.amount || 0);
+            });
+            const labels = Object.keys(cats), data = Object.values(cats);
+            if (!labels.length) { labels.push('No expenses'); data.push(1); }
+            charts.expenses.data.labels = labels;
+            charts.expenses.data.datasets[0].data = data;
+            charts.expenses.update('none');
+        }
+
+        // ============================================================
+        // CUSTOMER & SUPPLIER BALANCES (derived)
+        // ============================================================
+        function customerBalance(customerId) {
+            const sales = cache.sales.filter(s => s.customer_id === customerId);
+            const total = sales.reduce((s, x) => s + (x.total_amount || 0), 0);
+            const receivedFromSales = sales.reduce((s, x) => s + (x.amount_received || 0), 0);
+            const laterPayments = cache.customer_payments.filter(p => p.customer_id === customerId).reduce((s, x) => s + (x.amount || 0), 0);
+            const received = receivedFromSales + laterPayments;
+            return { total, received, remaining: total - received };
+        }
+
+        function supplierBalance(supplierId) {
+            const purchases = cache.purchases.filter(p => p.supplier_id === supplierId);
+            const total = purchases.reduce((s, x) => s + (x.total_cost || 0), 0);
+            const paidAtPurchase = purchases.reduce((s, x) => s + (x.amount_paid || 0), 0);
+            const later = cache.supplier_payments.filter(p => p.supplier_id === supplierId).reduce((s, x) => s + (x.amount || 0), 0);
+            const paid = paidAtPurchase + later;
+            return { total, paid, remaining: total - paid };
+        }
+
+        // ============================================================
+        // STOCK
+        // ============================================================
+        function renderStock() {
+            const q = $('#stock-search').value.toLowerCase();
+            const cat = $('#stock-filter').value;
+            const rows = cache.products.filter(p =>
+                (!q || (p.name + ' ' + (p.brand || '') + ' ' + (p.model || '')).toLowerCase().includes(q)) &&
+                (!cat || p.category === cat)
+            );
+            const tbody = $('#stock-table');
+            if (!rows.length) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-[var(--dim)] py-8">No products. Click <b>Add Product</b>.</td></tr>`; return;
+            }
+            tbody.innerHTML = rows.map(p => {
+                const low = (p.quantity || 0) <= (p.low_stock_threshold || 5);
+                return `<tr>
+      <td class="font-medium">${p.name}<div class="text-[11px] text-[var(--dim)]">${p.brand || ''} ${p.model ? '· ' + p.model : ''}</div></td>
+      <td class="hide-sm"><span class="text-[11px] px-2 py-0.5 rounded-md bg-[var(--card-hi)] text-[var(--muted)]">${p.category || '—'}</span></td>
+      <td>${fmt(p.purchase_price)}</td>
+      <td>${fmt(p.selling_price)}</td>
+      <td class="${low ? 'text-red-400 font-bold' : ''}">${p.quantity || 0} ${low ? '<i class="fa-solid fa-triangle-exclamation text-[10px] ml-1"></i>' : ''}</td>
+      <td class="hide-sm">${fmt((p.purchase_price || 0) * (p.quantity || 0))}</td>
+      <td class="hide-sm text-[var(--muted)]">${p.supplier_name || '—'}</td>
+      <td>
+        <div class="flex gap-1">
+          <button class="btn btn-ghost p-1.5" title="Edit" onclick="openProductModal(${p.id})"><i class="fa-solid fa-pen text-[var(--muted)] text-xs"></i></button>
+          <button class="btn btn-ghost p-1.5" title="Delete" onclick="deleteRow('products',${p.id})"><i class="fa-solid fa-trash text-red-400 text-xs"></i></button>
+        </div>
+      </td>
+    </tr>`;
+            }).join('');
+        }
+
+        function openProductModal(id) {
+            const p = id ? cache.products.find(x => x.id === id) : {};
+            openModal(`
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border)]">
+      <h3 class="text-sm font-semibold">${id ? 'Edit' : 'Add'} Product</h3>
+      <button class="btn btn-ghost p-1.5" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveProduct(event, ${id || 'null'})" class="p-5 space-y-3">
+      <div><label class="label">Product Name *</label><input name="name" class="inp" required value="${p.name || ''}"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label">Brand</label><input name="brand" class="inp" value="${p.brand || ''}"></div>
+        <div><label class="label">Model</label><input name="model" class="inp" value="${p.model || ''}"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label">Serial #</label><input name="serial_number" class="inp" value="${p.serial_number || ''}"></div>
+        <div><label class="label">Category *</label>
+          <select name="category" class="inp" required>
+            ${['Battery', 'Solar Panel', 'Fan', 'Inverter', 'Charger', 'Accessory'].map(c => `<option ${p.category === c ? 'selected' : ''}>${c}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label">Purchase Price *</label><input name="purchase_price" type="number" step="0.01" class="inp" required value="${p.purchase_price || 0}"></div>
+        <div><label class="label">Selling Price *</label><input name="selling_price" type="number" step="0.01" class="inp" required value="${p.selling_price || 0}"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label">Quantity *</label><input name="quantity" type="number" class="inp" required value="${p.quantity || 0}"></div>
+        <div><label class="label">Low-Stock Alert At</label><input name="low_stock_threshold" type="number" class="inp" value="${p.low_stock_threshold || 5}"></div>
+      </div>
+      <div><label class="label">Supplier</label><input name="supplier_name" class="inp" value="${p.supplier_name || ''}"></div>
+      <div class="flex gap-2 pt-2">
+        <button type="submit" class="btn btn-primary flex-1">Save</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>`);
+        }
+
+        async function saveProduct(e, id) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            const data = Object.fromEntries(new FormData(e.target));
+            data.purchase_price = +data.purchase_price || 0;
+            data.selling_price = +data.selling_price || 0;
+            data.quantity = parseInt(data.quantity) || 0;
+            data.low_stock_threshold = parseInt(data.low_stock_threshold) || 5;
+
+            const op = id ? db.from('products').update(data).eq('id', id) : db.from('products').insert(data);
+            const { error } = await op;
+            btn.disabled = false;
+            if (error) { toast(error.message, 'error'); return; }
+            toast(id ? 'Product updated' : 'Product added');
+            closeModal(); await loadAll(); renderStock();
+        }
+
+        // ============================================================
+        // SALES
+        // ============================================================
+        function renderSales() {
+            const q = $('#sales-search').value.toLowerCase();
+            const rows = cache.sales.filter(s => !q || (s.customer_name + ' ' + (s.product_name || '')).toLowerCase().includes(q))
+                .sort((a, b) => new Date(b.sale_date) - new Date(a.sale_date));
+            const tbody = $('#sales-table');
+            if (!rows.length) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-[var(--dim)] py-8">No sales. Click <b>New Sale</b>.</td></tr>`; return;
+            }
+            tbody.innerHTML = rows.map(s => `
+    <tr>
+      <td class="text-[var(--muted)]">${new Date(s.sale_date).toLocaleDateString('en-PK')}</td>
+      <td class="font-medium">${s.customer_name}<div class="text-[11px] text-[var(--dim)]">${s.customer_phone || ''}</div></td>
+      <td class="hide-sm">${s.product_name || '—'}${s.product_model ? ' <span class="text-[var(--dim)]">/ ' + s.product_model + '</span>' : ''}</td>
+      <td>${s.quantity}</td>
+      <td>${fmt(s.total_amount)}</td>
+      <td class="hide-sm">${fmt(s.amount_received)}</td>
+      <td class="text-emerald-400">${fmt(s.profit)}</td>
+      <td>
+        <div class="flex gap-1">
+          <button class="btn btn-ghost p-1.5" title="Invoice" onclick="printInvoice(${s.id})"><i class="fa-solid fa-print text-[var(--muted)] text-xs"></i></button>
+          <button class="btn btn-ghost p-1.5" title="Delete" onclick="deleteSale(${s.id})"><i class="fa-solid fa-trash text-red-400 text-xs"></i></button>
+        </div>
+      </td>
+    </tr>`).join('');
+        }
+
+        function openSaleModal() {
+            const avail = cache.products.filter(p => p.quantity > 0);
+            if (!avail.length) { toast('Add products with quantity first', 'error'); return; }
+            openModal(`
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border)]">
+      <h3 class="text-sm font-semibold">New Sale</h3>
+      <button class="btn btn-ghost p-1.5" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveSale(event)" class="p-5 space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label">Customer Name *</label><input name="customer_name" class="inp" required></div>
+        <div><label class="label">Phone</label><input name="customer_phone" class="inp"></div>
+      </div>
+      <div><label class="label">Product *</label>
+        <select name="product_id" id="sale-prod" class="inp" required onchange="onSaleProduct()">
+          <option value="">Select product…</option>
+          ${avail.map(p => `<option value="${p.id}" data-purchase="${p.purchase_price}" data-sell="${p.selling_price}" data-name="${p.name}" data-brand="${p.brand || ''}" data-model="${p.model || ''}" data-stock="${p.quantity}">${p.name} — ${p.quantity} in stock — ${fmt(p.selling_price)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div><label class="label">Qty *</label><input name="quantity" id="sale-qty" type="number" min="1" value="1" class="inp" required oninput="calcSale()"></div>
+        <div><label class="label">Purchase Price</label><input name="purchase_price" id="sale-pp" type="number" step="0.01" value="0" class="inp" readonly></div>
+        <div><label class="label">Selling Price *</label><input name="selling_price" id="sale-sp" type="number" step="0.01" value="0" class="inp" required oninput="calcSale()"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label">Discount</label><input name="discount" id="sale-disc" type="number" step="0.01" value="0" class="inp" oninput="calcSale()"></div>
+        <div><label class="label">Total Bill</label><input id="sale-total" type="number" class="inp" readonly></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label">Amount Received</label><input name="amount_received" id="sale-rec" type="number" step="0.01" value="0" class="inp" oninput="calcSale()"></div>
+        <div><label class="label">Remaining (Udhaar)</label><input id="sale-rem" type="number" class="inp" readonly></div>
+      </div>
+      <div class="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20 flex items-center justify-between text-xs">
+        <span class="text-[var(--muted)]">Estimated profit</span>
+        <span id="sale-profit" class="font-bold text-emerald-400">PKR 0</span>
+      </div>
+      <div><label class="label">Notes</label><textarea name="notes" class="inp" rows="2"></textarea></div>
+      <div class="flex gap-2 pt-2">
+        <button type="submit" class="btn btn-primary flex-1"><i class="fa-solid fa-check"></i> Complete Sale</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>`);
+        }
+
+        function onSaleProduct() {
+            const sel = $('#sale-prod');
+            const opt = sel.options[sel.selectedIndex];
+            if (!opt.value) return;
+            $('#sale-pp').value = opt.dataset.purchase;
+            $('#sale-sp').value = opt.dataset.sell;
+            calcSale();
+        }
+
+        function calcSale() {
+            const qty = +$('#sale-qty').value || 0;
+            const sp = +$('#sale-sp').value || 0;
+            const pp = +$('#sale-pp').value || 0;
+            const disc = +$('#sale-disc').value || 0;
+            const total = Math.max(0, qty * sp - disc);
+            const received = +$('#sale-rec').value || 0;
+            const remaining = Math.max(0, total - received);
+            const profit = total - (pp * qty);
+            $('#sale-total').value = total.toFixed(2);
+            $('#sale-rem').value = remaining.toFixed(2);
+            $('#sale-profit').textContent = fmt(profit);
+        }
+
+        async function saveSale(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing…';
+
+            const fd = new FormData(e.target);
+            const productId = parseInt(fd.get('product_id'));
+            const product = cache.products.find(p => p.id === productId);
+            if (!product) { toast('Product not found', 'error'); btn.disabled = false; return; }
+
+            const qty = parseInt(fd.get('quantity'));
+            if (qty > product.quantity) { toast(`Only ${product.quantity} in stock`, 'error'); btn.disabled = false; btn.innerHTML = 'Complete Sale'; return; }
+
+            const sellingPrice = parseFloat(fd.get('selling_price')) || 0;
+            const purchasePrice = parseFloat(fd.get('purchase_price')) || 0;
+            const discount = parseFloat(fd.get('discount')) || 0;
+            const total = Math.max(0, qty * sellingPrice - discount);
+            const received = parseFloat(fd.get('amount_received')) || 0;
+            const profit = total - (purchasePrice * qty);
+
+            // Find or create customer
+            let customerId = null;
+            const phone = (fd.get('customer_phone') || '').trim();
+            const name = fd.get('customer_name').trim();
+            let cust = cache.customers.find(c => (phone && c.phone === phone) || (!phone && c.name === name));
+            if (!cust) {
+                const { data, error } = await db.from('customers').insert({ name, phone }).select().single();
+                if (!error) { cust = data; customerId = data.id; }
+            } else customerId = cust.id;
+
+            const payload = {
+                customer_id: customerId,
+                customer_name: name,
+                customer_phone: phone,
+                product_id: productId,
+                product_name: product.name,
+                product_brand: product.brand,
+                product_model: product.model,
+                quantity: qty,
+                purchase_price: purchasePrice,
+                selling_price: sellingPrice,
+                discount,
+                total_amount: total,
+                amount_received: received,
+                profit,
+                notes: fd.get('notes') || null
+            };
+
+            const { error: e1 } = await db.from('sales').insert(payload);
+            if (e1) { toast(e1.message, 'error'); btn.disabled = false; btn.innerHTML = 'Complete Sale'; return; }
+
+            const { error: e2 } = await db.from('products').update({ quantity: product.quantity - qty }).eq('id', productId);
+            if (e2) { toast('Sale saved but stock update failed: ' + e2.message, 'error'); }
+
+            toast('Sale completed');
+            closeModal(); await loadAll(); renderSales(); renderDashboard();
+        }
+
+        async function deleteSale(id) {
+            if (!confirm('Delete this sale? Stock will be restored.')) return;
+            const sale = cache.sales.find(s => s.id === id);
+            if (!sale) { return; }
+            const prod = cache.products.find(p => p.id === sale.product_id);
+            if (prod) {
+                await db.from('products').update({ quantity: prod.quantity + sale.quantity }).eq('id', prod.id);
+            }
+            await db.from('sales').delete().eq('id', id);
+            toast('Sale deleted, stock restored');
+            await loadAll(); renderSales(); renderDashboard();
+        }
+
+        function printInvoice(saleId) {
+            const s = cache.sales.find(x => x.id === saleId);
+            if (!s) return;
+            const set = cache.settings || {};
+            const html = `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+      <div style="text-align:center;border-bottom:2px solid #10b981;padding-bottom:12px;margin-bottom:16px;">
+        <h1 style="margin:0;color:#10b981;">${set.shop_name || 'SSD BATTERY CENTRE'}</h1>
+        ${set.shop_phone ? `<p style="margin:4px 0;color:#555;">Phone: ${set.shop_phone}</p>` : ''}
+        ${set.shop_address ? `<p style="margin:4px 0;color:#555;">${set.shop_address}</p>` : ''}
+      </div>
+      <h3 style="margin:0 0 8px;">INVOICE #${s.id}</h3>
+      <table style="width:100%;margin-bottom:16px;font-size:13px;">
+        <tr><td><b>Date:</b></td><td>${new Date(s.sale_date).toLocaleString('en-PK')}</td></tr>
+        <tr><td><b>Customer:</b></td><td>${s.customer_name}</td></tr>
+        <tr><td><b>Phone:</b></td><td>${s.customer_phone || '—'}</td></tr>
+      </table>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+        <thead><tr style="background:#f3f4f6;"><th style="text-align:left;padding:8px;border:1px solid #ddd;">Item</th><th style="padding:8px;border:1px solid #ddd;">Qty</th><th style="padding:8px;border:1px solid #ddd;">Price</th><th style="padding:8px;border:1px solid #ddd;">Total</th></tr></thead>
+        <tbody><tr><td style="padding:8px;border:1px solid #ddd;">${s.product_name}${s.product_model ? ' / ' + s.product_model : ''}</td><td style="padding:8px;border:1px solid #ddd;text-align:center;">${s.quantity}</td><td style="padding:8px;border:1px solid #ddd;text-align:right;">${fmtNum(s.selling_price)}</td><td style="padding:8px;border:1px solid #ddd;text-align:right;">${fmtNum(s.quantity * s.selling_price)}</td></tr></tbody>
+      </table>
+      <table style="width:100%;font-size:14px;">
+        ${s.discount > 0 ? `<tr><td style="text-align:right;padding:4px;"><b>Discount:</b></td><td style="text-align:right;width:120px;padding:4px;">${fmtNum(s.discount)}</td></tr>` : ''}
+        <tr><td style="text-align:right;padding:4px;font-weight:bold;">Total:</td><td style="text-align:right;padding:4px;font-weight:bold;">PKR ${fmtNum(s.total_amount)}</td></tr>
+        <tr><td style="text-align:right;padding:4px;">Received:</td><td style="text-align:right;padding:4px;">PKR ${fmtNum(s.amount_received)}</td></tr>
+        <tr><td style="text-align:right;padding:4px;color:#c00;">Remaining:</td><td style="text-align:right;padding:4px;color:#c00;">PKR ${fmtNum(s.total_amount - s.amount_received)}</td></tr>
+      </table>
+      <p style="text-align:center;margin-top:24px;color:#777;font-size:12px;">${set.invoice_footer || 'Thank you for your business!'}</p>
+    </div>`;
+            const area = $('#print-area');
+            area.innerHTML = html;
+            area.style.display = 'block';
+            window.print();
+            setTimeout(() => { area.style.display = 'none'; area.innerHTML = ''; }, 500);
+        }
+
+        // ============================================================
+        // PROFIT & LOSS
+        // ============================================================
+        function setPLPeriod(p) {
+            currentPLPeriod = p;
+            renderProfitLoss();
+        }
+
+        function getPLRange() {
+            const today = todayISO();
+            if (currentPLPeriod === 'today') return { from: today, to: today };
+            if (currentPLPeriod === 'week') return { from: weekStartISO(), to: today };
+            if (currentPLPeriod === 'month') return { from: monthStartISO(), to: today };
+            return { from: null, to: null };
+        }
+
+        function renderProfitLoss() {
+            const { from, to } = getPLRange();
+            const sales = cache.sales.filter(s => inRange(s.sale_date, from, to));
+            const expenses = cache.expenses.filter(e => inRange(e.expense_date, from, to));
+
+            const revenue = sales.reduce((s, x) => s + (x.total_amount || 0), 0);
+            const cogs = sales.reduce((s, x) => s + ((x.purchase_price || 0) * (x.quantity || 0)), 0);
+            const gross = revenue - cogs;
+            const exp = expenses.reduce((s, x) => s + (x.amount || 0), 0);
+            const net = gross - exp;
+
+            $('#pl-revenue').textContent = fmt(revenue);
+            $('#pl-cogs').textContent = fmt(cogs);
+            $('#pl-gross').textContent = fmt(gross);
+            $('#pl-expenses').textContent = fmt(exp);
+            $('#pl-net').textContent = fmt(net);
+            $('#pl-net').className = 'text-xl font-bold mt-1 ' + (net >= 0 ? 'text-emerald-400' : 'text-red-400');
+
+            const tbody = $('#pl-table');
+            if (!sales.length) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-[var(--dim)] py-8">No sales in this period</td></tr>`; return;
+            }
+            tbody.innerHTML = sales.map(s => `
+    <tr>
+      <td class="text-[var(--muted)]">${new Date(s.sale_date).toLocaleDateString('en-PK')}</td>
+      <td>${s.customer_name}</td>
+      <td>${s.product_name}</td>
+      <td>${s.quantity}</td>
+      <td>${fmt(s.total_amount)}</td>
+      <td>${fmt((s.purchase_price || 0) * s.quantity)}</td>
+      <td class="text-emerald-400">${fmt(s.profit)}</td>
+    </tr>`).join('');
+        }
+
+        // ============================================================
+        // CUSTOMER UDHAAR
+        // ============================================================
+        function renderUdhaar() {
+            const q = $('#udhaar-search').value.toLowerCase();
+            const rows = cache.customers.filter(c => !q || (c.name + ' ' + (c.phone || '')).toLowerCase().includes(q));
+            const tbody = $('#udhaar-table');
+            if (!rows.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-[var(--dim)] py-8">No customers yet.</td></tr>`; return;
+            }
+            tbody.innerHTML = rows.map(c => {
+                const b = customerBalance(c.id);
+                return `<tr>
+      <td class="font-medium">${c.name}</td>
+      <td class="hide-sm text-[var(--muted)]">${c.phone || '—'}</td>
+      <td>${fmt(b.total)}</td>
+      <td class="hide-sm">${fmt(b.received)}</td>
+      <td class="${b.remaining > 0 ? 'text-amber-400 font-bold' : ''}">${fmt(b.remaining)}</td>
+      <td>
+        <div class="flex gap-1">
+          <button class="btn btn-ghost p-1.5" title="Receive Payment" onclick="openCustomerPayment(${c.id})"><i class="fa-solid fa-money-bill-wave text-emerald-400 text-xs"></i></button>
+          <button class="btn btn-ghost p-1.5" title="Ledger" onclick="openCustomerLedger(${c.id})"><i class="fa-solid fa-list text-[var(--muted)] text-xs"></i></button>
+        </div>
+      </td>
+    </tr>`;
+            }).join('');
+        }
+
+        function openCustomerModal() {
+            openModal(`
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border)]">
+      <h3 class="text-sm font-semibold">Add Customer</h3>
+      <button class="btn btn-ghost p-1.5" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveCustomer(event)" class="p-5 space-y-3">
+      <div><label class="label">Name *</label><input name="name" class="inp" required></div>
+      <div><label class="label">Phone</label><input name="phone" class="inp"></div>
+      <div><label class="label">Address</label><input name="address" class="inp"></div>
+      <div class="flex gap-2 pt-2">
+        <button type="submit" class="btn btn-primary flex-1">Save</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>`);
+        }
+        async function saveCustomer(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
+            const data = Object.fromEntries(new FormData(e.target));
+            const { error } = await db.from('customers').insert(data);
+            btn.disabled = false;
+            if (error) { toast(error.message, 'error'); return; }
+            toast('Customer added'); closeModal(); await loadAll(); renderUdhaar();
+        }
+
+        function openCustomerPayment(custId) {
+            const c = cache.customers.find(x => x.id === custId);
+            const b = customerBalance(custId);
+            openModal(`
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border)]">
+      <h3 class="text-sm font-semibold">Receive Payment — ${c.name}</h3>
+      <button class="btn btn-ghost p-1.5" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveCustomerPayment(event, ${custId})" class="p-5 space-y-3">
+      <div class="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
+        <div class="text-xs text-[var(--muted)]">Current Udhaar</div>
+        <div class="text-lg font-bold text-amber-400">${fmt(b.remaining)}</div>
+      </div>
+      <div><label class="label">Amount Received *</label><input name="amount" type="number" step="0.01" min="0.01" class="inp" required></div>
+      <div><label class="label">Notes</label><input name="notes" class="inp"></div>
+      <div class="flex gap-2 pt-2">
+        <button type="submit" class="btn btn-primary flex-1">Save Payment</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>`);
+        }
+        async function saveCustomerPayment(e, custId) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
+            const fd = new FormData(e.target);
+            const { error } = await db.from('customer_payments').insert({
+                customer_id: custId,
+                amount: parseFloat(fd.get('amount')),
+                notes: fd.get('notes') || null
+            });
+            btn.disabled = false;
+            if (error) { toast(error.message, 'error'); return; }
+            toast('Payment recorded'); closeModal(); await loadAll(); renderUdhaar(); renderDashboard();
+        }
+
+        function openCustomerLedger(custId) {
+            const c = cache.customers.find(x => x.id === custId);
+            const sales = cache.sales.filter(s => s.customer_id === custId).sort((a, b) => new Date(b.sale_date) - new Date(a.sale_date));
+            const payments = cache.customer_payments.filter(p => p.customer_id === custId).sort((a, b) => new Date(b.payment_date) - new Date(a.payment_date));
+            const b = customerBalance(custId);
+
+            const events = [
+                ...sales.map(s => ({ date: s.sale_date, type: 'Sale', desc: `${s.product_name} × ${s.quantity}`, debit: s.total_amount, credit: s.amount_received })),
+                ...payments.map(p => ({ date: p.payment_date, type: 'Payment', desc: p.notes || 'Payment received', debit: 0, credit: p.amount }))
+            ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            openModal(`
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border)]">
+      <div>
+        <h3 class="text-sm font-semibold">${c.name} — Ledger</h3>
+        <p class="text-[11px] text-[var(--dim)]">${c.phone || ''}</p>
+      </div>
+      <button class="btn btn-ghost p-1.5" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="p-2 rounded-lg bg-[var(--surface)]"><div class="text-[10px] text-[var(--dim)] uppercase">Billed</div><div class="text-sm font-bold">${fmt(b.total)}</div></div>
+        <div class="p-2 rounded-lg bg-[var(--surface)]"><div class="text-[10px] text-[var(--dim)] uppercase">Paid</div><div class="text-sm font-bold text-emerald-400">${fmt(b.received)}</div></div>
+        <div class="p-2 rounded-lg bg-amber-500/5 border border-amber-500/20"><div class="text-[10px] text-[var(--dim)] uppercase">Udhaar</div><div class="text-sm font-bold text-amber-400">${fmt(b.remaining)}</div></div>
+      </div>
+      ${events.length === 0 ? '<p class="text-center text-[var(--dim)] py-4 text-sm">No transactions yet</p>' :
+                    `<table class="text-xs"><thead><tr><th>Date</th><th>Type</th><th>Details</th><th>Amount</th></tr></thead><tbody>
+          ${events.map(ev => `<tr>
+            <td class="text-[var(--muted)]">${new Date(ev.date).toLocaleDateString('en-PK')}</td>
+            <td><span class="text-[10px] px-1.5 py-0.5 rounded ${ev.type === 'Sale' ? 'bg-sky-500/10 text-sky-400' : 'bg-emerald-500/10 text-emerald-400'}">${ev.type}</span></td>
+            <td>${ev.desc}</td>
+            <td class="text-right">${ev.debit > 0 ? `<span class="text-red-400">+${fmtNum(ev.debit)}</span> ` : ''}${ev.credit > 0 ? `<span class="text-emerald-400">-${fmtNum(ev.credit)}</span>` : ''}</td>
+          </tr>`).join('')}
+        </tbody></table>`
+                }
+    </div>`);
+        }
+
+        // ============================================================
+        // SUPPLIERS
+        // ============================================================
+        function renderSuppliers() {
+            const q = $('#supp-search').value.toLowerCase();
+            const rows = cache.suppliers.filter(s => !q || (s.name + ' ' + (s.phone || '')).toLowerCase().includes(q));
+            const tbody = $('#suppliers-table');
+            if (!rows.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-[var(--dim)] py-8">No suppliers yet.</td></tr>`; return;
+            }
+            tbody.innerHTML = rows.map(s => {
+                const b = supplierBalance(s.id);
+                return `<tr>
+      <td class="font-medium">${s.name}</td>
+      <td class="hide-sm text-[var(--muted)]">${s.phone || '—'}</td>
+      <td>${fmt(b.total)}</td>
+      <td class="hide-sm">${fmt(b.paid)}</td>
+      <td class="${b.remaining > 0 ? 'text-amber-400 font-bold' : ''}">${fmt(b.remaining)}</td>
+      <td>
+        <div class="flex gap-1">
+          <button class="btn btn-ghost p-1.5" title="Pay Supplier" onclick="openSupplierPayment(${s.id})"><i class="fa-solid fa-money-bill-wave text-emerald-400 text-xs"></i></button>
+          <button class="btn btn-ghost p-1.5" title="Ledger" onclick="openSupplierLedger(${s.id})"><i class="fa-solid fa-list text-[var(--muted)] text-xs"></i></button>
+        </div>
+      </td>
+    </tr>`;
+            }).join('');
+        }
+
+        function openSupplierModal() {
+            openModal(`
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border)]">
+      <h3 class="text-sm font-semibold">Add Supplier</h3>
+      <button class="btn btn-ghost p-1.5" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveSupplier(event)" class="p-5 space-y-3">
+      <div><label class="label">Name *</label><input name="name" class="inp" required></div>
+      <div><label class="label">Phone</label><input name="phone" class="inp"></div>
+      <div><label class="label">Address</label><input name="address" class="inp"></div>
+      <div class="flex gap-2 pt-2">
+        <button type="submit" class="btn btn-primary flex-1">Save</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>`);
+        }
+        async function saveSupplier(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
+            const { error } = await db.from('suppliers').insert(Object.fromEntries(new FormData(e.target)));
+            btn.disabled = false;
+            if (error) { toast(error.message, 'error'); return; }
+            toast('Supplier added'); closeModal(); await loadAll(); renderSuppliers();
+        }
+
+        function openSupplierPayment(supId) {
+            const s = cache.suppliers.find(x => x.id === supId);
+            const b = supplierBalance(supId);
+            openModal(`
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border)]">
+      <h3 class="text-sm font-semibold">Pay Supplier — ${s.name}</h3>
+      <button class="btn btn-ghost p-1.5" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveSupplierPayment(event, ${supId})" class="p-5 space-y-3">
+      <div class="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
+        <div class="text-xs text-[var(--muted)]">Balance Owed</div>
+        <div class="text-lg font-bold text-amber-400">${fmt(b.remaining)}</div>
+      </div>
+      <div><label class="label">Amount Paid *</label><input name="amount" type="number" step="0.01" min="0.01" class="inp" required></div>
+      <div><label class="label">Notes</label><input name="notes" class="inp"></div>
+      <div class="flex gap-2 pt-2">
+        <button type="submit" class="btn btn-primary flex-1">Save Payment</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>`);
+        }
+        async function saveSupplierPayment(e, supId) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
+            const fd = new FormData(e.target);
+            const { error } = await db.from('supplier_payments').insert({
+                supplier_id: supId,
+                amount: parseFloat(fd.get('amount')),
+                notes: fd.get('notes') || null
+            });
+            btn.disabled = false;
+            if (error) { toast(error.message, 'error'); return; }
+            toast('Payment recorded'); closeModal(); await loadAll(); renderSuppliers(); renderDashboard();
+        }
+
+        function openSupplierLedger(supId) {
+            const s = cache.suppliers.find(x => x.id === supId);
+            const purchases = cache.purchases.filter(p => p.supplier_id === supId);
+            const payments = cache.supplier_payments.filter(p => p.supplier_id === supId);
+            const b = supplierBalance(supId);
+            const events = [
+                ...purchases.map(p => ({ date: p.purchase_date, type: 'Purchase', desc: `${p.product_name} × ${p.quantity}`, amount: p.total_cost, paid: p.amount_paid || 0 })),
+                ...payments.map(p => ({ date: p.payment_date, type: 'Payment', desc: p.notes || 'Payment made', amount: 0, paid: p.amount }))
+            ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            openModal(`
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border)]">
+      <div><h3 class="text-sm font-semibold">${s.name} — Ledger</h3><p class="text-[11px] text-[var(--dim)]">${s.phone || ''}</p></div>
+      <button class="btn btn-ghost p-1.5" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="p-2 rounded-lg bg-[var(--surface)]"><div class="text-[10px] text-[var(--dim)] uppercase">Purchases</div><div class="text-sm font-bold">${fmt(b.total)}</div></div>
+        <div class="p-2 rounded-lg bg-[var(--surface)]"><div class="text-[10px] text-[var(--dim)] uppercase">Paid</div><div class="text-sm font-bold text-emerald-400">${fmt(b.paid)}</div></div>
+        <div class="p-2 rounded-lg bg-amber-500/5 border border-amber-500/20"><div class="text-[10px] text-[var(--dim)] uppercase">Balance</div><div class="text-sm font-bold text-amber-400">${fmt(b.remaining)}</div></div>
+      </div>
+      ${events.length === 0 ? '<p class="text-center text-[var(--dim)] py-4 text-sm">No transactions</p>' :
+                    `<table class="text-xs"><thead><tr><th>Date</th><th>Type</th><th>Details</th><th>Amount</th></tr></thead><tbody>
+          ${events.map(ev => `<tr>
+            <td class="text-[var(--muted)]">${new Date(ev.date).toLocaleDateString('en-PK')}</td>
+            <td><span class="text-[10px] px-1.5 py-0.5 rounded ${ev.type === 'Purchase' ? 'bg-sky-500/10 text-sky-400' : 'bg-emerald-500/10 text-emerald-400'}">${ev.type}</span></td>
+            <td>${ev.desc}</td>
+            <td class="text-right">${ev.amount > 0 ? `<span class="text-red-400">+${fmtNum(ev.amount)}</span> ` : ''}${ev.paid > 0 ? `<span class="text-emerald-400">-${fmtNum(ev.paid)}</span>` : ''}</td>
+          </tr>`).join('')}
+        </tbody></table>`}
+    </div>`);
+        }
+
+        // ============================================================
+        // WORKERS
+        // ============================================================
+        function renderWorkers() {
+            const q = $('#workers-search').value.toLowerCase();
+            const rows = cache.workers.filter(w => !q || w.name.toLowerCase().includes(q));
+            const tbody = $('#workers-table');
+            if (!rows.length) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-[var(--dim)] py-8">No workers yet.</td></tr>`; return;
+            }
+            tbody.innerHTML = rows.map(w => {
+                const paid = cache.worker_payments.filter(p => p.worker_id === w.id).reduce((s, x) => s + (x.amount || 0), 0);
+                return `<tr>
+      <td class="font-medium">${w.name}</td>
+      <td class="hide-sm text-[var(--muted)]">${w.phone || '—'}</td>
+      <td>${fmt(w.monthly_salary)}</td>
+      <td class="hide-sm text-emerald-400">${fmt(paid)}</td>
+      <td>
+        <div class="flex gap-1">
+          <button class="btn btn-ghost p-1.5" title="Pay" onclick="openWorkerPayment(${w.id})"><i class="fa-solid fa-money-bill-wave text-emerald-400 text-xs"></i></button>
+          <button class="btn btn-ghost p-1.5" title="History" onclick="openWorkerHistory(${w.id})"><i class="fa-solid fa-list text-[var(--muted)] text-xs"></i></button>
+        </div>
+      </td>
+    </tr>`;
+            }).join('');
+        }
+
+        function openWorkerModal() {
+            openModal(`
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border)]">
+      <h3 class="text-sm font-semibold">Add Worker</h3>
+      <button class="btn btn-ghost p-1.5" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveWorker(event)" class="p-5 space-y-3">
+      <div><label class="label">Name *</label><input name="name" class="inp" required></div>
+      <div><label class="label">Phone</label><input name="phone" class="inp"></div>
+      <div><label class="label">Monthly Salary *</label><input name="monthly_salary" type="number" step="0.01" class="inp" required></div>
+      <div class="flex gap-2 pt-2">
+        <button type="submit" class="btn btn-primary flex-1">Save</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>`);
+        }
+        async function saveWorker(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
+            const fd = new FormData(e.target);
+            const { error } = await db.from('workers').insert({
+                name: fd.get('name'),
+                phone: fd.get('phone'),
+                monthly_salary: parseFloat(fd.get('monthly_salary')) || 0
+            });
+            btn.disabled = false;
+            if (error) { toast(error.message, 'error'); return; }
+            toast('Worker added'); closeModal(); await loadAll(); renderWorkers();
+        }
+
+        function openWorkerPayment(workerId) {
+            const w = cache.workers.find(x => x.id === workerId);
+            openModal(`
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border)]">
+      <h3 class="text-sm font-semibold">Pay ${w.name}</h3>
+      <button class="btn btn-ghost p-1.5" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveWorkerPayment(event, ${workerId})" class="p-5 space-y-3">
+      <div><label class="label">Amount *</label><input name="amount" type="number" step="0.01" min="0.01" class="inp" required></div>
+      <div><label class="label">Type</label>
+        <select name="type" class="inp"><option>Salary</option><option>Advance</option></select>
+      </div>
+      <div><label class="label">Notes</label><input name="notes" class="inp"></div>
+      <div class="flex gap-2 pt-2">
+        <button type="submit" class="btn btn-primary flex-1">Save Payment</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>`);
+        }
+        async function saveWorkerPayment(e, workerId) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
+            const fd = new FormData(e.target);
+            const { error } = await db.from('worker_payments').insert({
+                worker_id: workerId,
+                amount: parseFloat(fd.get('amount')),
+                type: fd.get('type'),
+                notes: fd.get('notes') || null
+            });
+            btn.disabled = false;
+            if (error) { toast(error.message, 'error'); return; }
+            toast('Payment recorded'); closeModal(); await loadAll(); renderWorkers();
+        }
+
+        function openWorkerHistory(workerId) {
+            const w = cache.workers.find(x => x.id === workerId);
+            const payments = cache.worker_payments.filter(p => p.worker_id === workerId).sort((a, b) => new Date(b.payment_date) - new Date(a.payment_date));
+            openModal(`
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border)]">
+      <h3 class="text-sm font-semibold">${w.name} — Payment History</h3>
+      <button class="btn btn-ghost p-1.5" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-5 max-h-[70vh] overflow-y-auto">
+      ${payments.length === 0 ? '<p class="text-center text-[var(--dim)] py-4 text-sm">No payments</p>' :
+                    `<table class="text-xs"><thead><tr><th>Date</th><th>Type</th><th>Notes</th><th class="text-right">Amount</th></tr></thead><tbody>
+          ${payments.map(p => `<tr>
+            <td class="text-[var(--muted)]">${new Date(p.payment_date).toLocaleDateString('en-PK')}</td>
+            <td><span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400">${p.type}</span></td>
+            <td>${p.notes || '—'}</td>
+            <td class="text-right text-emerald-400">${fmt(p.amount)}</td>
+          </tr>`).join('')}
+        </tbody></table>`}
+    </div>`);
+        }
+
+        // ============================================================
+        // EXPENSES
+        // ============================================================
+        function renderExpenses() {
+            const cat = $('#exp-filter').value;
+            const rows = cache.expenses.filter(e => !cat || e.category === cat).sort((a, b) => new Date(b.expense_date) - new Date(a.expense_date));
+            const tbody = $('#expenses-table');
+            if (!rows.length) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-[var(--dim)] py-8">No expenses.</td></tr>`; return;
+            }
+            tbody.innerHTML = rows.map(e => `
+    <tr>
+      <td class="text-[var(--muted)]">${new Date(e.expense_date).toLocaleDateString('en-PK')}</td>
+      <td><span class="text-[11px] px-2 py-0.5 rounded bg-[var(--card-hi)] text-[var(--muted)]">${e.category}</span></td>
+      <td class="hide-sm text-[var(--muted)]">${e.description || '—'}</td>
+      <td class="text-rose-400 font-semibold">${fmt(e.amount)}</td>
+      <td><button class="btn btn-ghost p-1.5" onclick="deleteRow('expenses',${e.id})"><i class="fa-solid fa-trash text-red-400 text-xs"></i></button></td>
+    </tr>`).join('');
+        }
+
+        function openExpenseModal() {
+            openModal(`
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border)]">
+      <h3 class="text-sm font-semibold">Add Expense</h3>
+      <button class="btn btn-ghost p-1.5" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveExpense(event)" class="p-5 space-y-3">
+      <div><label class="label">Category *</label>
+        <select name="category" class="inp" required>
+          <option value="">Select…</option>
+          <option>Shop Rent</option><option>Electricity</option><option>Transport</option>
+          <option>Maintenance</option><option>Food</option><option>Other</option>
+        </select>
+      </div>
+      <div><label class="label">Amount *</label><input name="amount" type="number" step="0.01" min="0.01" class="inp" required></div>
+      <div><label class="label">Description</label><input name="description" class="inp"></div>
+      <div class="flex gap-2 pt-2">
+        <button type="submit" class="btn btn-primary flex-1">Save</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>`);
+        }
+        async function saveExpense(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
+            const fd = new FormData(e.target);
+            const { error } = await db.from('expenses').insert({
+                category: fd.get('category'),
+                amount: parseFloat(fd.get('amount')),
+                description: fd.get('description') || null
+            });
+            btn.disabled = false;
+            if (error) { toast(error.message, 'error'); return; }
+            toast('Expense added'); closeModal(); await loadAll(); renderExpenses(); renderDashboard();
+        }
+
+        // ============================================================
+        // PURCHASES
+        // ============================================================
+        function renderPurchases() {
+            const q = $('#pur-search').value.toLowerCase();
+            const rows = cache.purchases.filter(p => !q || (p.supplier_name + ' ' + (p.product_name || '')).toLowerCase().includes(q))
+                .sort((a, b) => new Date(b.purchase_date) - new Date(a.purchase_date));
+            const tbody = $('#purchases-table');
+            if (!rows.length) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-[var(--dim)] py-8">No purchases yet.</td></tr>`; return;
+            }
+            tbody.innerHTML = rows.map(p => {
+                const rem = (p.total_cost || 0) - (p.amount_paid || 0);
+                return `<tr>
+      <td class="text-[var(--muted)]">${new Date(p.purchase_date).toLocaleDateString('en-PK')}</td>
+      <td class="font-medium">${p.supplier_name}</td>
+      <td>${p.product_name || '—'}<div class="text-[11px] text-[var(--dim)]">${p.brand || ''} ${p.model ? '· ' + p.model : ''}</div></td>
+      <td>${p.quantity}</td>
+      <td>${fmt(p.total_cost)}</td>
+      <td class="hide-sm ${rem > 0 ? 'text-amber-400' : ''}">${fmt(p.amount_paid)}</td>
+      <td><button class="btn btn-ghost p-1.5" onclick="deletePurchase(${p.id})"><i class="fa-solid fa-trash text-red-400 text-xs"></i></button></td>
+    </tr>`;
+            }).join('');
+        }
+
+        function openPurchaseModal() {
+            if (!cache.products.length) { toast('Add products first', 'error'); return; }
+            openModal(`
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border)]">
+      <h3 class="text-sm font-semibold">New Purchase</h3>
+      <button class="btn btn-ghost p-1.5" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="savePurchase(event)" class="p-5 space-y-3">
+      <div><label class="label">Supplier Name *</label><input name="supplier_name" class="inp" required></div>
+      <div><label class="label">Product *</label>
+        <select name="product_id" id="pur-prod" class="inp" required onchange="onPurProduct()">
+          <option value="">Select product…</option>
+          ${cache.products.map(p => `<option value="${p.id}" data-name="${p.name}" data-brand="${p.brand || ''}" data-model="${p.model || ''}" data-price="${p.purchase_price}">${p.name} — current: ${p.quantity}</option>`).join('')}
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label">Quantity *</label><input name="quantity" id="pur-qty" type="number" min="1" class="inp" required oninput="calcPur()"></div>
+        <div><label class="label">Unit Purchase Price *</label><input name="purchase_price" id="pur-price" type="number" step="0.01" class="inp" required oninput="calcPur()"></div>
+      </div>
+      <div><label class="label">Total Cost</label><input id="pur-total" type="number" class="inp" readonly></div>
+      <div><label class="label">Amount Paid</label><input name="amount_paid" id="pur-paid" type="number" step="0.01" value="0" class="inp" oninput="calcPur()"></div>
+      <div><label class="label">Notes</label><textarea name="notes" class="inp" rows="2"></textarea></div>
+      <div class="flex gap-2 pt-2">
+        <button type="submit" class="btn btn-primary flex-1"><i class="fa-solid fa-check"></i> Save Purchase</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>`);
+        }
+        function onPurProduct() {
+            const sel = $('#pur-prod');
+            const opt = sel.options[sel.selectedIndex];
+            if (opt.value) $('#pur-price').value = opt.dataset.price;
+            calcPur();
+        }
+        function calcPur() {
+            const qty = +$('#pur-qty').value || 0;
+            const price = +$('#pur-price').value || 0;
+            $('#pur-total').value = (qty * price).toFixed(2);
+        }
+        async function savePurchase(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
+            const fd = new FormData(e.target);
+            const productId = parseInt(fd.get('product_id'));
+            const product = cache.products.find(p => p.id === productId);
+            if (!product) { toast('Product not found', 'error'); btn.disabled = false; return; }
+            const qty = parseInt(fd.get('quantity'));
+            const price = parseFloat(fd.get('purchase_price'));
+            const total = qty * price;
+            const paid = parseFloat(fd.get('amount_paid')) || 0;
+            const supplierName = fd.get('supplier_name').trim();
+
+            // Find or create supplier
+            let supplierId = null;
+            let sup = cache.suppliers.find(s => s.name.toLowerCase() === supplierName.toLowerCase());
+            if (!sup) {
+                const { data } = await db.from('suppliers').insert({ name: supplierName }).select().single();
+                supplierId = data?.id;
+            } else supplierId = sup.id;
+
+            const { error: e1 } = await db.from('purchases').insert({
+                supplier_id: supplierId,
+                supplier_name: supplierName,
+                product_id: productId,
+                product_name: product.name,
+                brand: product.brand,
+                model: product.model,
+                quantity: qty,
+                purchase_price: price,
+                total_cost: total,
+                amount_paid: paid,
+                notes: fd.get('notes') || null
+            });
+            if (e1) { toast(e1.message, 'error'); btn.disabled = false; return; }
+
+            await db.from('products').update({ quantity: product.quantity + qty }).eq('id', productId);
+            toast('Purchase saved, stock increased');
+            closeModal(); await loadAll(); renderPurchases(); renderDashboard();
+        }
+
+        async function deletePurchase(id) {
+            if (!confirm('Delete this purchase? Stock will be reduced accordingly.')) return;
+            const p = cache.purchases.find(x => x.id === id);
+            if (!p) return;
+            const prod = cache.products.find(x => x.id === p.product_id);
+            if (prod && prod.quantity >= p.quantity) {
+                await db.from('products').update({ quantity: prod.quantity - p.quantity }).eq('id', prod.id);
+            }
+            await db.from('purchases').delete().eq('id', id);
+            toast('Purchase deleted'); await loadAll(); renderPurchases(); renderDashboard();
+        }
+
+        // ============================================================
+        // CLAIMS
+        // ============================================================
+        function renderClaims() {
+            const q = $('#claims-search').value.toLowerCase();
+            const rows = cache.claims.filter(c => !q || (c.customer_name + ' ' + (c.serial_number || '') + ' ' + (c.battery_brand || '')).toLowerCase().includes(q))
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            const tbody = $('#claims-table');
+            if (!rows.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-[var(--dim)] py-8">No claims yet.</td></tr>`; return;
+            }
+            const colors = { Pending: 'bg-amber-500/10 text-amber-400', Approved: 'bg-emerald-500/10 text-emerald-400', Rejected: 'bg-red-500/10 text-red-400', Completed: 'bg-sky-500/10 text-sky-400' };
+            tbody.innerHTML = rows.map(c => `
+    <tr>
+      <td class="font-medium">${c.customer_name}<div class="text-[11px] text-[var(--dim)]">${c.phone || ''}</div></td>
+      <td>${c.battery_brand || '—'} ${c.battery_model ? '<span class="text-[var(--dim)]">· ' + c.battery_model + '</span>' : ''}</td>
+      <td class="hide-sm text-[var(--muted)]">${c.serial_number || '—'}</td>
+      <td class="hide-sm text-[var(--muted)]">${c.claim_date || '—'}</td>
+      <td><span class="text-[10px] px-2 py-0.5 rounded-md font-medium ${colors[c.status] || ''}">${c.status}</span></td>
+      <td>
+        <div class="flex gap-1">
+          <button class="btn btn-ghost p-1.5" onclick="openClaimStatus(${c.id})" title="Update status"><i class="fa-solid fa-pen text-[var(--muted)] text-xs"></i></button>
+          <button class="btn btn-ghost p-1.5" onclick="deleteRow('claims',${c.id})"><i class="fa-solid fa-trash text-red-400 text-xs"></i></button>
+        </div>
+      </td>
+    </tr>`).join('');
+        }
+
+        function openClaimModal(id) {
+            const c = id ? cache.claims.find(x => x.id === id) : {};
+            openModal(`
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border)]">
+      <h3 class="text-sm font-semibold">${id ? 'Edit' : 'New'} Battery Claim</h3>
+      <button class="btn btn-ghost p-1.5" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form onsubmit="saveClaim(event, ${id || 'null'})" class="p-5 space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label">Customer *</label><input name="customer_name" class="inp" required value="${c.customer_name || ''}"></div>
+        <div><label class="label">Phone</label><input name="phone" class="inp" value="${c.phone || ''}"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label">Battery Brand</label><input name="battery_brand" class="inp" value="${c.battery_brand || ''}"></div>
+        <div><label class="label">Battery Model</label><input name="battery_model" class="inp" value="${c.battery_model || ''}"></div>
+      </div>
+      <div><label class="label">Serial #</label><input name="serial_number" class="inp" value="${c.serial_number || ''}"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label">Purchase Date</label><input name="purchase_date" type="date" class="inp" value="${c.purchase_date || ''}"></div>
+        <div><label class="label">Warranty Period</label><input name="warranty_period" class="inp" placeholder="e.g. 6 months" value="${c.warranty_period || ''}"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label">Claim Date</label><input name="claim_date" type="date" class="inp" value="${c.claim_date || todayISO()}"></div>
+        <div><label class="label">Status</label>
+          <select name="status" class="inp">
+            ${['Pending', 'Approved', 'Rejected', 'Completed'].map(s => `<option ${c.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div><label class="label">Remarks</label><textarea name="remarks" class="inp" rows="2">${c.remarks || ''}</textarea></div>
+      <div class="flex gap-2 pt-2">
+        <button type="submit" class="btn btn-primary flex-1">Save</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>`);
+        }
+        async function saveClaim(e, id) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
+            const fd = new FormData(e.target);
+            const data = {
+                customer_name: fd.get('customer_name'),
+                phone: fd.get('phone'),
+                battery_brand: fd.get('battery_brand'),
+                battery_model: fd.get('battery_model'),
+                serial_number: fd.get('serial_number'),
+                purchase_date: fd.get('purchase_date') || null,
+                warranty_period: fd.get('warranty_period'),
+                claim_date: fd.get('claim_date') || todayISO(),
+                status: fd.get('status'),
+                remarks: fd.get('remarks')
+            };
+            const op = id ? db.from('claims').update(data).eq('id', id) : db.from('claims').insert(data);
+            const { error } = await op;
+            btn.disabled = false;
+            if (error) { toast(error.message, 'error'); return; }
+            toast(id ? 'Claim updated' : 'Claim recorded'); closeModal(); await loadAll(); renderClaims();
+        }
+
+        function openClaimStatus(id) {
+            openClaimModal(id);
+        }
+
+        // ============================================================
+        // SETTINGS
+        // ============================================================
+        function renderSettings() {
+            const s = cache.settings || {};
+            $('#set-name').value = s.shop_name || 'SSD BATTERY CENTRE';
+            $('#set-phone').value = s.shop_phone || '';
+            $('#set-address').value = s.shop_address || '';
+            $('#set-footer').value = s.invoice_footer || '';
+        }
+        async function saveSettings(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
+            const data = {
+                shop_name: $('#set-name').value,
+                shop_phone: $('#set-phone').value,
+                shop_address: $('#set-address').value,
+                invoice_footer: $('#set-footer').value,
+                updated_at: new Date().toISOString()
+            };
+            const id = cache.settings?.id;
+            const op = id ? db.from('settings').update(data).eq('id', id) : db.from('settings').insert(data);
+            const { error } = await op;
+            btn.disabled = false;
+            if (error) { toast(error.message, 'error'); return; }
+            toast('Settings saved'); await loadAll();
+        }
+
+        // ============================================================
+        // BACKUP / RESTORE
+        // ============================================================
+        async function backupData() {
+            const backup = {};
+            for (const t of TABLES) {
+                const { data } = await db.from(t).select('*');
+                backup[t] = data || [];
+            }
+            backup._meta = { exported_at: new Date().toISOString(), version: 2 };
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `ssd-backup-${todayISO()}.json`;
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
+            toast('Backup downloaded');
+        }
+
+        async function restoreData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const text = await file.text();
+            let data;
+            try { data = JSON.parse(text); } catch { toast('Invalid backup file', 'error'); return; }
+            if (!confirm('⚠️ This will REPLACE all current data with the backup. Continue?')) return;
+
+            for (const t of TABLES) {
+                if (!(t in data)) continue;
+                await db.from(t).delete().neq('id', 0);
+                if (data[t].length) {
+                    const rows = data[t].map(r => {
+                        const { id, ...rest } = r;
+                        return rest;
+                    });
+                    await db.from(t).insert(rows);
+                }
+            }
+            toast('Data restored');
+            await loadAll(); go('dashboard');
+        }
+
+        // ============================================================
+        // REPORTS
+        // ============================================================
+        function setReportRange(range) {
+            const today = todayISO();
+            let from = null, to = today;
+            if (range === 'today') from = today;
+            else if (range === 'week') from = weekStartISO();
+            else if (range === 'month') from = monthStartISO();
+            $('#rep-from').value = from || '';
+            $('#rep-to').value = to;
+            currentReportRange = { from, to };
+        }
+
+        function previewReport(type) {
+            const from = $('#rep-from').value || null;
+            const to = $('#rep-to').value || null;
+            currentReportRange = { from, to };
+
+            let title, headers, rows, summary = '';
+
+            if (type === 'sales') {
+                const data = cache.sales.filter(s => inRange(s.sale_date, from, to));
+                title = 'Sales Report';
+                headers = ['Date', 'Customer', 'Product', 'Qty', 'Total', 'Profit'];
+                rows = data.map(s => [new Date(s.sale_date).toLocaleDateString('en-PK'), s.customer_name, s.product_name || '', s.quantity, s.total_amount, s.profit]);
+                const total = data.reduce((s, x) => s + x.total_amount, 0);
+                const profit = data.reduce((s, x) => s + x.profit, 0);
+                summary = `Records: ${data.length} · Revenue: ${fmt(total)} · Profit: ${fmt(profit)}`;
+            } else if (type === 'purchases') {
+                const data = cache.purchases.filter(p => inRange(p.purchase_date, from, to));
+                title = 'Purchase Report';
+                headers = ['Date', 'Supplier', 'Product', 'Qty', 'Cost', 'Paid'];
+                rows = data.map(p => [new Date(p.purchase_date).toLocaleDateString('en-PK'), p.supplier_name, p.product_name || '', p.quantity, p.total_cost, p.amount_paid]);
+                summary = `Records: ${data.length} · Total Cost: ${fmt(data.reduce((s, x) => s + x.total_cost, 0))}`;
+            } else if (type === 'stock') {
+                title = 'Stock Report';
+                headers = ['Product', 'Brand', 'Model', 'Category', 'Qty', 'Purchase', 'Selling', 'Stock Value'];
+                rows = cache.products.map(p => [p.name, p.brand || '', p.model || '', p.category || '', p.quantity, p.purchase_price, p.selling_price, (p.purchase_price || 0) * (p.quantity || 0)]);
+                const val = cache.products.reduce((s, p) => s + (p.purchase_price || 0) * (p.quantity || 0), 0);
+                summary = `Items: ${cache.products.length} · Total Value: ${fmt(val)}`;
+            } else if (type === 'profitloss') {
+                const sales = cache.sales.filter(s => inRange(s.sale_date, from, to));
+                const expenses = cache.expenses.filter(e => inRange(e.expense_date, from, to));
+                const revenue = sales.reduce((s, x) => s + x.total_amount, 0);
+                const cogs = sales.reduce((s, x) => s + (x.purchase_price || 0) * x.quantity, 0);
+                const exp = expenses.reduce((s, x) => s + x.amount, 0);
+                const gross = revenue - cogs;
+                const net = gross - exp;
+                title = 'Profit & Loss Statement';
+                headers = ['Metric', 'Amount (PKR)'];
+                rows = [
+                    ['Sales Revenue', revenue],
+                    ['Cost of Goods Sold (COGS)', cogs],
+                    ['Gross Profit', gross],
+                    ['Business Expenses', exp],
+                    ['Net Profit', net]
+                ];
+                summary = `Net Profit: ${fmt(net)}`;
+            } else if (type === 'expenses') {
+                const data = cache.expenses.filter(e => inRange(e.expense_date, from, to));
+                title = 'Expense Report';
+                headers = ['Date', 'Category', 'Description', 'Amount'];
+                rows = data.map(e => [new Date(e.expense_date).toLocaleDateString('en-PK'), e.category, e.description || '', e.amount]);
+                summary = `Records: ${data.length} · Total: ${fmt(data.reduce((s, x) => s + x.amount, 0))}`;
+            } else if (type === 'customers') {
+                title = 'Customer Accounts';
+                headers = ['Customer', 'Phone', 'Billed', 'Received', 'Udhaar'];
+                rows = cache.customers.map(c => {
+                    const b = customerBalance(c.id);
+                    return [c.name, c.phone || '', b.total, b.received, b.remaining];
+                });
+                summary = `Customers: ${cache.customers.length}`;
+            } else if (type === 'suppliers') {
+                title = 'Supplier Accounts';
+                headers = ['Supplier', 'Phone', 'Purchases', 'Paid', 'Balance'];
+                rows = cache.suppliers.map(s => {
+                    const b = supplierBalance(s.id);
+                    return [s.name, s.phone || '', b.total, b.paid, b.remaining];
+                });
+                summary = `Suppliers: ${cache.suppliers.length}`;
+            } else if (type === 'workers') {
+                title = 'Worker Payments Report';
+                headers = ['Worker', 'Salary', 'Total Paid', 'Last Payment'];
+                rows = cache.workers.map(w => {
+                    const payments = cache.worker_payments.filter(p => p.worker_id === w.id);
+                    const total = payments.reduce((s, x) => s + x.amount, 0);
+                    const last = payments.sort((a, b) => new Date(b.payment_date) - new Date(a.payment_date))[0];
+                    return [w.name, w.monthly_salary, total, last ? new Date(last.payment_date).toLocaleDateString('en-PK') : '—'];
+                });
+                summary = `Workers: ${cache.workers.length}`;
+            } else if (type === 'claims') {
+                title = 'Battery Claims Report';
+                headers = ['Customer', 'Brand', 'Model', 'Serial', 'Claim Date', 'Status'];
+                rows = cache.claims.map(c => [c.customer_name, c.battery_brand || '', c.battery_model || '', c.serial_number || '', c.claim_date || '', c.status]);
+                summary = `Claims: ${cache.claims.length}`;
+            }
+
+            // Preview modal
+            openModal(`
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border)]">
+      <div>
+        <h3 class="text-sm font-semibold">${title}</h3>
+        <p class="text-[11px] text-[var(--dim)]">${from ? from + ' to ' + (to || 'today') : 'All time'} · ${summary}</p>
+      </div>
+      <button class="btn btn-ghost p-1.5" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-5 max-h-[65vh] overflow-auto">
+      <table class="text-xs"><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>
+        ${rows.length ? rows.map(r => `<tr>${r.map((c, i) => `<td class="${typeof c === 'number' && i > 0 ? 'text-right' : ''}">${typeof c === 'number' ? fmtNum(c) : c}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${headers.length}" class="text-center text-[var(--dim)] py-6">No records</td></tr>`}
+      </tbody></table>
+    </div>
+    <div class="flex gap-2 p-5 border-t border-[var(--border)]">
+      <button class="btn btn-secondary flex-1" onclick="exportReportPDF('${type}')"><i class="fa-solid fa-file-pdf text-red-400"></i> Export PDF</button>
+      <button class="btn btn-secondary flex-1" onclick="exportReportExcel('${type}')"><i class="fa-solid fa-file-excel text-emerald-400"></i> Export Excel</button>
+    </div>`);
+        }
+
+        function getReportData(type) {
+            const from = currentReportRange.from;
+            const to = currentReportRange.to;
+            let title, headers, rows;
+            if (type === 'sales') {
+                const data = cache.sales.filter(s => inRange(s.sale_date, from, to));
+                title = 'Sales Report'; headers = ['Date', 'Customer', 'Product', 'Qty', 'Total', 'Profit'];
+                rows = data.map(s => [new Date(s.sale_date).toLocaleDateString('en-PK'), s.customer_name, s.product_name || '', s.quantity, s.total_amount, s.profit]);
+            } else if (type === 'purchases') {
+                const data = cache.purchases.filter(p => inRange(p.purchase_date, from, to));
+                title = 'Purchase Report'; headers = ['Date', 'Supplier', 'Product', 'Qty', 'Cost', 'Paid'];
+                rows = data.map(p => [new Date(p.purchase_date).toLocaleDateString('en-PK'), p.supplier_name, p.product_name || '', p.quantity, p.total_cost, p.amount_paid]);
+            } else if (type === 'stock') {
+                title = 'Stock Report'; headers = ['Product', 'Brand', 'Model', 'Qty', 'Purchase', 'Selling', 'Value'];
+                rows = cache.products.map(p => [p.name, p.brand || '', p.model || '', p.quantity, p.purchase_price, p.selling_price, (p.purchase_price || 0) * (p.quantity || 0)]);
+            } else if (type === 'profitloss') {
+                const sales = cache.sales.filter(s => inRange(s.sale_date, from, to));
+                const expenses = cache.expenses.filter(e => inRange(e.expense_date, from, to));
+                const revenue = sales.reduce((s, x) => s + x.total_amount, 0);
+                const cogs = sales.reduce((s, x) => s + (x.purchase_price || 0) * x.quantity, 0);
+                const exp = expenses.reduce((s, x) => s + x.amount, 0);
+                title = 'Profit & Loss'; headers = ['Metric', 'Amount'];
+                rows = [['Revenue', revenue], ['COGS', cogs], ['Gross Profit', revenue - cogs], ['Expenses', exp], ['Net Profit', revenue - cogs - exp]];
+            } else if (type === 'expenses') {
+                const data = cache.expenses.filter(e => inRange(e.expense_date, from, to));
+                title = 'Expense Report'; headers = ['Date', 'Category', 'Description', 'Amount'];
+                rows = data.map(e => [new Date(e.expense_date).toLocaleDateString('en-PK'), e.category, e.description || '', e.amount]);
+            } else if (type === 'customers') {
+                title = 'Customer Accounts'; headers = ['Customer', 'Phone', 'Billed', 'Received', 'Udhaar'];
+                rows = cache.customers.map(c => { const b = customerBalance(c.id); return [c.name, c.phone || '', b.total, b.received, b.remaining]; });
+            } else if (type === 'suppliers') {
+                title = 'Supplier Accounts'; headers = ['Supplier', 'Phone', 'Purchases', 'Paid', 'Balance'];
+                rows = cache.suppliers.map(s => { const b = supplierBalance(s.id); return [s.name, s.phone || '', b.total, b.paid, b.remaining]; });
+            } else if (type === 'workers') {
+                title = 'Worker Payments'; headers = ['Worker', 'Salary', 'Total Paid', 'Last Payment'];
+                rows = cache.workers.map(w => {
+                    const p = cache.worker_payments.filter(x => x.worker_id === w.id);
+                    const total = p.reduce((s, x) => s + x.amount, 0);
+                    const last = p.sort((a, b) => new Date(b.payment_date) - new Date(a.payment_date))[0];
+                    return [w.name, w.monthly_salary, total, last ? new Date(last.payment_date).toLocaleDateString('en-PK') : '—'];
+                });
+            } else if (type === 'claims') {
+                title = 'Battery Claims'; headers = ['Customer', 'Brand', 'Model', 'Serial', 'Claim Date', 'Status'];
+                rows = cache.claims.map(c => [c.customer_name, c.battery_brand || '', c.battery_model || '', c.serial_number || '', c.claim_date || '', c.status]);
+            }
+            return { title, headers, rows };
+        }
+
+        function exportReportPDF(type) {
+            const { title, headers, rows } = getReportData(type);
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            const shopName = cache.settings?.shop_name || 'SSD BATTERY CENTRE';
+            doc.setFontSize(16);
+            doc.setTextColor(16, 185, 129);
+            doc.text(shopName, 148, 15, { align: 'center' });
+            doc.setFontSize(11);
+            doc.setTextColor(80, 80, 80);
+            doc.text(title, 148, 22, { align: 'center' });
+            doc.setFontSize(9);
+            const range = currentReportRange.from ? `${currentReportRange.from} to ${currentReportRange.to || 'today'}` : 'All time';
+            doc.text(`Period: ${range}  |  Generated: ${new Date().toLocaleString('en-PK')}`, 148, 28, { align: 'center' });
+            doc.autoTable({
+                head: [headers],
+                body: rows,
+                startY: 34,
+                styles: { fontSize: 8, cellPadding: 2 },
+                headStyles: { fillColor: [16, 185, 129], textColor: 255, fontSize: 8 },
+                alternateRowStyles: { fillColor: [245, 250, 247] }
+            });
+            doc.save(`SSD_${type}_${todayISO()}.pdf`);
+            toast('PDF exported');
+        }
+
+        function exportReportExcel(type) {
+            const { title, headers, rows } = getReportData(type);
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+            XLSX.utils.book_append_sheet(wb, ws, title.slice(0, 30));
+            XLSX.writeFile(wb, `SSD_${type}_${todayISO()}.xlsx`);
+            toast('Excel exported');
+        }
+
+        // ============================================================
+        // GENERIC DELETE
+        // ============================================================
+        async function deleteRow(table, id) {
+            if (!confirm(`Delete this record? This cannot be undone.`)) return;
+            const { error } = await db.from(table).delete().eq('id', id);
+            if (error) { toast(error.message, 'error'); return; }
+            toast('Deleted'); await loadAll();
+            const renders = { products: renderStock, expenses: renderExpenses, claims: renderClaims };
+            renders[table]?.();
+            renderDashboard();
+        }
+
+        // ============================================================
+        // MODAL
+        // ============================================================
+        function openModal(content) {
+            $('#modal-root').innerHTML = `<div class="modal-backdrop" onclick="if(event.target===this)closeModal()"><div class="modal">${content}</div></div>`;
+        }
+        function closeModal() { $('#modal-root').innerHTML = ''; }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            $('#topbar-date').textContent = new Date().toLocaleDateString('en-PK', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+            $$('[data-nav]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); go(el.dataset.nav); }));
+
+            initCharts();
+            await loadAll();
+            go('dashboard');
+        });
+    </script>
+</body>
+
+</html>
